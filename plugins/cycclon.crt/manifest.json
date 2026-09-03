@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "cycclon.crt",
+  "name": "CRT overlay",
+  "version": "1.0.0",
+  "description": "Fullscreen phosphor-glow and scanline overlay for the White Rabbit theme.",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "CrtOverlay.qml"
+  }
+}

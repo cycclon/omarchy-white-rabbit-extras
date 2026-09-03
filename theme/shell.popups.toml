@@ -1,0 +1,6 @@
+[popups]
+background       = "#020d06"
+background-alpha = 0.90
+text             = "#29cc52"
+border           = "hyprland.active-border"
+border-alpha     = 1.0

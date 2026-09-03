@@ -1,0 +1,589 @@
+/*
+ * Matrix -- GTK 4 skin, the Files (Nautilus) look.
+ *
+ * Nautilus and friends are GTK4/libadwaita apps and never see `gsettings
+ * gtk-theme`: libadwaita intentionally hardcodes its own palette. This file
+ * is the user stylesheet GTK 4 reads on its own
+ * (~/.config/gtk-4.0/gtk.css), symlinked into place by the theme-set hook in
+ * ~/.config/omarchy/hooks/theme-set.d/. A second symlink at
+ * ~/.local/share/themes/Matrix/gtk-4.0/gtk.css covers anything launched with
+ * GTK_THEME=Matrix, matching the GTK 3 side.
+ *
+ * No @import: GTK 4 rejects a whole stylesheet whose import cannot resolve,
+ * and this file must also stand alone as a named theme. Instead the skin
+ * overrides libadwaita twice -- the named colors it derives its variables
+ * from, then the variables again under :root -- because a define parsed
+ * before libadwaita's own sheet could be won by it. Plain GTK 4 apps
+ * (zenity) skip the variables and take only the chrome rules below.
+ *
+ * Colours track colors.toml; button states mirror shell.controls.toml the
+ * same way the keyring prompt's gtk.css does. Corners are squared so windows
+ * fill the hud-borders frame without rounded gaps. Font follows the console.
+ */
+
+@define-color matrix_bg          #020d06;
+@define-color matrix_bg_deep     #010804;
+@define-color matrix_bg_raised   #0a2113;
+@define-color matrix_fg          #29cc52;
+@define-color matrix_fg_dim      #187533;
+@define-color matrix_fg_bright   #a0ccad;
+@define-color matrix_accent      #45abbf;
+@define-color matrix_selection   #0e4320;
+@define-color matrix_error       #ff2d2d;
+@define-color matrix_success     #00cc34;
+@define-color matrix_warning     #3ecc62;
+
+@define-color accent_bg_color    #45abbf;
+@define-color accent_fg_color    #010804;
+@define-color accent_color       #45abbf;
+@define-color window_bg_color    #020d06;
+@define-color window_fg_color    #29cc52;
+@define-color view_bg_color      #010804;
+@define-color view_fg_color      #29cc52;
+@define-color headerbar_bg_color #020d06;
+@define-color headerbar_fg_color #29cc52;
+@define-color headerbar_backdrop_color #020d06;
+@define-color headerbar_border_color RGB(69 171 191 / 35%);
+@define-color headerbar_shade_color RGB(69 171 191 / 25%);
+@define-color headerbar_darker_shade_color RGB(1 8 4 / 90%);
+@define-color sidebar_bg_color   #020d06;
+@define-color sidebar_fg_color   #29cc52;
+@define-color sidebar_backdrop_color #020d06;
+@define-color sidebar_border_color RGB(69 171 191 / 25%);
+@define-color sidebar_shade_color RGB(69 171 191 / 25%);
+@define-color secondary_sidebar_bg_color #020d06;
+@define-color secondary_sidebar_fg_color #29cc52;
+@define-color secondary_sidebar_backdrop_color #020d06;
+@define-color secondary_sidebar_border_color RGB(69 171 191 / 25%);
+@define-color secondary_sidebar_shade_color RGB(69 171 191 / 25%);
+@define-color dialog_bg_color    #020d06;
+@define-color dialog_fg_color    #29cc52;
+@define-color popover_bg_color   #020d06;
+@define-color popover_fg_color   #29cc52;
+@define-color popover_shade_color RGB(69 171 191 / 25%);
+@define-color card_bg_color      #0a2113;
+@define-color card_fg_color      #29cc52;
+@define-color card_shade_color RGB(69 171 191 / 15%);
+@define-color shade_color RGB(69 171 191 / 15%);
+@define-color scrollbar_outline_color RGB(1 8 4 / 90%);
+@define-color destructive_bg_color RGB(255 45 45 / 15%);
+@define-color destructive_fg_color #ff2d2d;
+@define-color destructive_color  #ff2d2d;
+@define-color success_bg_color   #00cc34;
+@define-color success_fg_color   #010804;
+@define-color success_color      #00cc34;
+@define-color warning_bg_color   #3ecc62;
+@define-color warning_fg_color   #010804;
+@define-color warning_color      #3ecc62;
+@define-color error_bg_color     RGB(255 45 45 / 15%);
+@define-color error_fg_color     #ff2d2d;
+@define-color error_color        #ff2d2d;
+
+/* Reassert the variables directly; see header. */
+:root {
+  --window-radius: 0px;
+  --window-bg-color: @window_bg_color;
+  --window-fg-color: @window_fg_color;
+  --view-bg-color: @view_bg_color;
+  --view-fg-color: @view_fg_color;
+  --headerbar-bg-color: @headerbar_bg_color;
+  --headerbar-fg-color: @headerbar_fg_color;
+  --headerbar-border-color: @headerbar_border_color;
+  --headerbar-backdrop-color: @headerbar_backdrop_color;
+  --headerbar-shade-color: @headerbar_shade_color;
+  --headerbar-darker-shade-color: @headerbar_darker_shade_color;
+  --sidebar-bg-color: @sidebar_bg_color;
+  --sidebar-fg-color: @sidebar_fg_color;
+  --sidebar-backdrop-color: @sidebar_backdrop_color;
+  --sidebar-border-color: @sidebar_border_color;
+  --sidebar-shade-color: @sidebar_shade_color;
+  --secondary-sidebar-bg-color: @secondary_sidebar_bg_color;
+  --secondary-sidebar-fg-color: @secondary_sidebar_fg_color;
+  --secondary-sidebar-backdrop-color: @secondary_sidebar_backdrop_color;
+  --secondary-sidebar-border-color: @secondary_sidebar_border_color;
+  --secondary-sidebar-shade-color: @secondary_sidebar_shade_color;
+  --card-bg-color: @card_bg_color;
+  --card-fg-color: @card_fg_color;
+  --card-shade-color: @card_shade_color;
+  --dialog-bg-color: @dialog_bg_color;
+  --dialog-fg-color: @dialog_fg_color;
+  --popover-bg-color: @popover_bg_color;
+  --popover-fg-color: @popover_fg_color;
+  --popover-shade-color: @popover_shade_color;
+  --shade-color: @shade_color;
+  --scrollbar-outline-color: @scrollbar_outline_color;
+  --accent-bg-color: @accent_bg_color;
+  --accent-fg-color: @accent_fg_color;
+  --accent-color: @accent_color;
+  --border-color: RGB(69 171 191 / 25%);
+  --dim-opacity: 0.55;
+}
+
+/* HUD frame is drawn by the hud-borders plugin outside the surface, so the
+ * window squares off to fill it rather than leaving rounded gaps inside the
+ * chamfered corners. Same treatment as the keyring prompt. */
+* {
+  border-radius: 0;
+  outline-style: none;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+window,
+dialog {
+  font-family: "Terminess Nerd Font", monospace;
+  background-color: @matrix_bg;
+  color: @matrix_fg;
+}
+
+/* -- buttons: OpenCode-style flat chips ------------------------------------ *
+ * Idle controls are bare text; hover/focus add a faint green wash, and the
+ * suggested action is the only lit element — a solid green chip with
+ * console-dark text. Borders stay reserved (transparent) so nothing shifts. */
+
+button {
+  background-color: transparent;
+  color: @matrix_fg;
+  border: 1px solid transparent;
+  box-shadow: none;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+button:hover {
+  background-color: RGB(41 204 82 / 12%);
+  border-color: transparent;
+  color: @matrix_fg_bright;
+}
+
+button:focus {
+  background-color: RGB(41 204 82 / 12%);
+  border-color: transparent;
+  color: @matrix_fg_bright;
+}
+
+button:active,
+button:checked,
+button.keyboard-activating {
+  background-color: RGB(41 204 82 / 22%);
+  border-color: transparent;
+  color: @matrix_fg_bright;
+}
+
+button:disabled {
+  background-color: transparent;
+  border-color: transparent;
+  color: @matrix_fg_dim;
+}
+
+/* The suggested action is the lit chip: solid green, console-dark text, in
+ * every state — focus included, or the default button would flash bright
+ * text the moment zenity hands it the keyboard focus. */
+button.suggested-action,
+button.suggested-action:hover,
+button.suggested-action:focus,
+button.suggested-action:active,
+button.suggested-action:checked,
+button.suggested-action.keyboard-activating {
+  background-color: @matrix_fg;
+  border-color: transparent;
+  color: @matrix_bg;
+}
+
+button.suggested-action:hover {
+  background-color: RGB(41 204 82 / 88%);
+}
+
+button.suggested-action:active,
+button.suggested-action:checked,
+button.suggested-action.keyboard-activating {
+  background-color: RGB(41 204 82 / 72%);
+}
+
+button.destructive-action {
+  background-color: RGB(255 45 45 / 14%);
+  border-color: transparent;
+  color: @matrix_error;
+}
+
+/* libadwaita pads dialog response buttons (10px 20px) with higher
+ * specificity than the rule above; keep its horizontal rhythm, trim 2px
+ * off top and bottom. */
+window.dialog.message .dialog-action-area > button,
+window.messagedialog .response-area > button,
+dialog.alert .response-area > button {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* Zenity and friends never tag their default response with
+ * .suggested-action — the highlighted one is simply the button holding
+ * keyboard focus (the keyboard cursor, like OpenCode's own dialogs). Render
+ * the focused response as the lit chip so the default action reads as such,
+ * and let the chip follow when focus moves. */
+window.messagedialog .response-area > button:focus,
+dialog.alert .response-area > button:focus {
+  background-color: @matrix_fg;
+  border-color: transparent;
+  color: @matrix_bg;
+}
+
+/* Flat chrome inside headerbars and toolbars stays bare text until hover,
+ * like the dialog buttons above. */
+headerbar button:not(.suggested-action):not(.destructive-action) {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+headerbar button:not(.suggested-action):not(.destructive-action):hover {
+  border-color: transparent;
+  background-color: RGB(41 204 82 / 12%);
+  color: @matrix_fg_bright;
+}
+
+headerbar button:not(.suggested-action):not(.destructive-action):active,
+headerbar button:not(.suggested-action):not(.destructive-action):checked {
+  border-color: transparent;
+  background-color: RGB(41 204 82 / 22%);
+  color: @matrix_fg_bright;
+}
+
+/* -- entries --------------------------------------------------------------- */
+
+entry {
+  background-color: @matrix_bg_deep;
+  color: @matrix_fg;
+  caret-color: @matrix_fg;
+  border: 1px solid RGB(69 171 191 / 35%);
+  box-shadow: none;
+}
+
+entry:focus-within {
+  border-color: @matrix_accent;
+  box-shadow: 0 0 0 1px RGB(69 171 191 / 25%);
+  color: @matrix_fg_bright;
+}
+
+entry:disabled {
+  color: @matrix_fg_dim;
+  border-color: RGB(69 171 191 / 18%);
+}
+
+entry image {
+  color: @matrix_fg_dim;
+}
+
+/* Text selection stays foot-green, not cyan. */
+selection {
+  background-color: @matrix_selection;
+  color: @matrix_fg_bright;
+}
+
+/* -- sidebar --------------------------------------------------------------- */
+
+.sidebar-pane,
+.content-pane {
+  background-color: @matrix_bg;
+}
+
+.navigation-sidebar > row,
+.navigation-sidebar > row.activatable,
+.sidebar-pane list > row,
+.sidebar-pane list > row.activatable {
+  color: @matrix_fg;
+}
+
+.navigation-sidebar > row:hover,
+.navigation-sidebar > row.activatable:hover,
+.sidebar-pane list > row.activatable:hover {
+  background-color: RGB(160 204 173 / 12%);
+  color: @matrix_fg_bright;
+}
+
+.navigation-sidebar > row:selected,
+.sidebar-pane list > row:selected {
+  background-color: RGB(160 204 173 / 20%);
+  color: @matrix_fg_bright;
+}
+
+.navigation-sidebar > row:selected:hover,
+.sidebar-pane list > row:selected:hover {
+  background-color: RGB(160 204 173 / 26%);
+}
+
+.navigation-sidebar > row:disabled,
+.sidebar-pane list > row:disabled {
+  color: @matrix_fg_dim;
+}
+
+/* Separating seam follows the HUD line colour. */
+.sidebar-pane > separator,
+.nautilus-window sidebar-pane {
+  border-color: @sidebar_border_color;
+}
+
+/* -- headerbar ------------------------------------------------------------- */
+
+headerbar {
+  background-color: @matrix_bg;
+  color: @matrix_fg;
+  border-bottom: 1px solid RGB(69 171 191 / 35%);
+  box-shadow: none;
+}
+
+headerbar:backdrop {
+  background-color: @matrix_bg;
+  color: @matrix_fg;
+}
+
+headerbar .dim-label {
+  color: @matrix_fg_dim;
+}
+
+windowcontrols button {
+  border: none;
+  background-color: transparent;
+  color: @matrix_fg;
+}
+
+windowcontrols button:hover {
+  background-color: RGB(69 171 191 / 12%);
+  color: @matrix_fg_bright;
+}
+
+/* -- path bar -------------------------------------------------------------- */
+
+.nautilus-pathbar > scrolledwindow,
+.nautilus-pathbar .linked {
+  background-color: @matrix_bg_deep;
+  border: 1px solid RGB(69 171 191 / 35%);
+}
+
+.nautilus-path-button {
+  background-color: transparent;
+  color: @matrix_fg;
+}
+
+.nautilus-path-button:not(.current-dir):not(:backdrop):hover {
+  background-color: RGB(69 171 191 / 12%);
+  color: @matrix_fg_bright;
+}
+
+.nautilus-path-button.current-dir {
+  background-color: RGB(69 171 191 / 18%);
+  border: 1px solid RGB(69 171 191 / 55%);
+  color: @matrix_fg_bright;
+}
+
+/* -- file views: the screen area behaves like the console ------------------- */
+
+.nautilus-grid-view gridview,
+.nautilus-list-view columnview,
+.nautilus-network-view listview {
+  background-color: @matrix_bg_deep;
+  color: @matrix_fg;
+}
+
+.nautilus-grid-view gridview > child,
+.nautilus-grid-view .nautilus-view-cell,
+.nautilus-list-view .nautilus-view-cell {
+  border-radius: 0;
+}
+
+.nautilus-grid-view gridview > child.activatable:hover,
+.nautilus-list-view columnview > listview > row.activatable:hover {
+  background-color: RGB(160 204 173 / 12%);
+}
+
+.nautilus-grid-view gridview > child:selected,
+.nautilus-list-view columnview > listview > row:selected {
+  background-color: RGB(160 204 173 / 35%);
+  color: @matrix_fg_bright;
+  box-shadow: none;
+}
+
+/* Rubberband = HUD cursor: thin cyan line, faint fill. */
+rubberband {
+  border: 1px solid @matrix_accent;
+  background-color: RGB(69 171 191 / 12%);
+}
+
+/* Item count / drop bar along the bottom of the view. */
+.floating-bar {
+  background-color: @matrix_bg_deep;
+  border: 1px solid RGB(69 171 191 / 25%);
+  box-shadow: none;
+}
+
+.floating-bar button:hover {
+  background-color: RGB(69 171 191 / 12%);
+}
+
+/* -- popovers, menus, tooltips ---------------------------------------------- */
+
+popover > arrow,
+popover > contents,
+popover.background > contents {
+  background-color: @matrix_bg;
+  color: @matrix_fg;
+  border: 1px solid RGB(69 171 191 / 55%);
+  box-shadow: 0 0 0 1px RGB(1 8 4 / 90%);
+}
+
+popover > contents > list,
+popover > contents > box,
+popover menu {
+  background-color: @matrix_bg;
+}
+
+popover list > row:hover,
+popover menu item:hover {
+  background-color: RGB(69 171 191 / 12%);
+  color: @matrix_fg_bright;
+}
+
+popover list > row:selected,
+popover menu item:selected {
+  background-color: RGB(160 204 173 / 20%);
+  color: @matrix_fg_bright;
+}
+
+tooltip,
+tooltip.background {
+  background-color: @matrix_bg;
+  border: 1px solid @matrix_accent;
+  color: @matrix_fg_bright;
+}
+
+window.menu popup,
+menubutton popover {
+  background-color: @matrix_bg;
+}
+
+/* -- checkboxes, radios, switches ------------------------------------------- */
+
+checkbutton,
+radiobutton {
+  color: @matrix_fg;
+}
+
+check,
+radio {
+  background-color: @matrix_bg_deep;
+  border: 1px solid RGB(69 171 191 / 45%);
+  color: @matrix_fg_bright;
+  box-shadow: none;
+}
+
+check:checked,
+check:indeterminate,
+radio:checked {
+  background-color: RGB(69 171 191 / 30%);
+  border-color: @matrix_accent;
+  color: @matrix_fg_bright;
+  background-image: none;
+}
+
+switch {
+  background-color: @matrix_bg_deep;
+  border: 1px solid RGB(69 171 191 / 45%);
+  color: @matrix_fg;
+}
+
+switch:checked {
+  background-color: RGB(69 171 191 / 30%);
+  border-color: @matrix_accent;
+}
+
+switch slider {
+  background-color: RGB(69 171 191 / 18%);
+  border: 1px solid @matrix_accent;
+}
+
+/* -- scrollbars: green rails, no outline glow -------------------------------- */
+
+scrollbar {
+  background-color: transparent;
+}
+
+scrollbar > range > trough {
+  background-color: transparent;
+}
+
+scrollbar > range > trough > slider {
+  background-color: RGB(41 204 82 / 40%);
+  border: none;
+  box-shadow: none;
+}
+
+scrollbar > range > trough > slider:hover {
+  background-color: RGB(41 204 82 / 60%);
+}
+
+scrollbar > range > trough > slider:active {
+  background-color: @matrix_fg;
+}
+
+/* -- progress and level bars -------------------------------------------------- */
+
+progressbar trough,
+levelbar trough {
+  background-color: @matrix_bg_deep;
+  border: 1px solid RGB(69 171 191 / 25%);
+}
+
+progressbar progress,
+levelbar block.filled {
+  background-color: @matrix_fg;
+  border: none;
+}
+
+levelbar block.empty {
+  background-color: transparent;
+}
+
+/* -- properties dialog --------------------------------------------------------- */
+
+.disk-space-free {
+  background-color: RGB(41 204 82 / 35%);
+}
+
+.disk-space-used {
+  background-color: @matrix_fg;
+}
+
+/* -- links and misc chrome ------------------------------------------------------- */
+
+link,
+label.link {
+  color: @matrix_accent;
+}
+
+label.dim-label,
+label:disabled {
+  color: @matrix_fg_dim;
+}
+
+separator {
+  background-color: RGB(69 171 191 / 25%);
+  color: RGB(69 171 191 / 25%);
+  min-width: 1px;
+  min-height: 1px;
+}
+
+image {
+  color: @matrix_accent;
+}
+
+/* Search entry gets visible chrome wherever it is docked or floating. */
+searchbar > revealer > box,
+nautilus-query-editor {
+  background-color: @matrix_bg;
+  border: 1px solid RGB(69 171 191 / 35%);
+}
+
+button.star,
+label.star,
+.floating-bar button.star image {
+  color: @matrix_warning;
+}

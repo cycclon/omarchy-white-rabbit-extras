@@ -1,0 +1,278 @@
+/*
+ * Matrix -- GTK 3 skin for the gnome-keyring password prompt (gcr-prompter).
+ *
+ * gcr-prompter is a plain GTK 3 app, so it never sees Omarchy's theme: the
+ * shell's own polkit dialog is Quickshell and reads shell.toml, but the keyring
+ * prompt is GNOME's and reads a GTK theme. This file IS that GTK theme.
+ *
+ * It is scoped to the prompter alone via GTK_THEME=Matrix, set in the two
+ * user D-Bus service overrides in ~/.local/share/dbus-1/services/ -- no other
+ * GTK 3 app on the system is affected.
+ *
+ * Adwaita-dark is imported for metrics (padding, sizing, focus handling) and
+ * then repainted below. Colours track colors.toml; the button states mirror
+ * shell.controls.toml so the prompt reads like the rest of the shell chrome.
+ *
+ * The import below only resolves under GTK 3 (gcr-prompter) -- GTK 4 ships no
+ * such resource and logs a parser error, then falls back to libadwaita's own
+ * defaults, which is exactly what a GTK4 client (zenity) wants. */
+
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained-dark.css");
+
+@define-color matrix_bg          #020d06;
+@define-color matrix_bg_deep     #010804;
+@define-color matrix_bg_raised   #0a2113;
+@define-color matrix_fg          #29cc52;
+@define-color matrix_fg_dim      #187533;
+@define-color matrix_fg_bright   #a0ccad;
+@define-color matrix_accent      #45abbf;
+@define-color matrix_selection   #0e4320;
+@define-color matrix_error       #ff2d2d;
+
+/* The HUD frame is drawn by the hud-borders Hyprland plugin, outside the
+ * surface. Square everything off so the GTK window fills the frame instead of
+ * leaving rounded gaps inside the chamfered corners. */
+* {
+  font-family: "Terminess Nerd Font", monospace;
+  border-radius: 0;
+  outline-style: none;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+window,
+dialog,
+.background,
+messagedialog {
+  background-color: @matrix_bg;
+  background-image: none;
+  color: @matrix_fg;
+}
+
+/* Headline ("Unlock Login Keyring") sits in the accent; body copy stays green. */
+label {
+  color: @matrix_fg;
+  /* Phosphor glow: hot pale core, lime bloom, dark green ambient -- the
+   * Kid's Story chat look. Scoped here only; the global * rule above still
+   * suppresses shadows on icons/buttons. */
+  text-shadow: 0 0 1px alpha(#eaffee, 0.28),
+               0 0 5px alpha(#5aff82, 0.22),
+               0 0 14px alpha(#28dc5a, 0.10);
+}
+
+label.dim-label,
+label:disabled,
+.dim-label {
+  color: @matrix_fg_dim;
+}
+
+label:selected,
+selection {
+  background-color: @matrix_selection;
+  color: @matrix_fg_bright;
+}
+
+/* --- password entry ------------------------------------------------------ */
+
+entry {
+  border-radius: 0;
+  background-color: @matrix_bg_deep;
+  background-image: none;
+  color: @matrix_fg;
+  caret-color: @matrix_fg;
+  border: 1px solid alpha(@matrix_accent, 0.35);
+  box-shadow: none;
+  padding: 6px 8px;
+  min-height: 26px;
+}
+
+entry:focus,
+entry:focus-within {
+  border-color: @matrix_accent;
+  box-shadow: inset 0 0 0 1px alpha(@matrix_accent, 0.25);
+  color: @matrix_fg_bright;
+}
+
+entry:disabled {
+  color: @matrix_fg_dim;
+  border-color: alpha(@matrix_accent, 0.18);
+}
+
+entry selection {
+  background-color: @matrix_selection;
+  color: @matrix_fg_bright;
+}
+
+entry image,
+entry.password.peek image {
+  color: @matrix_fg_dim;
+}
+
+/* --- buttons: OpenCode-style flat chips ----------------------------------- *
+ * Idle controls are bare text; hover/focus add a faint green wash, and the
+ * default action is the only lit element — a solid green chip with
+ * console-dark text. */
+
+button,
+button.text-button,
+headerbar button {
+  border-radius: 0;
+  background-color: transparent;
+  background-image: none;
+  color: @matrix_fg;
+  border: 1px solid transparent;
+  box-shadow: none;
+  padding: 5px 16px;
+  min-height: 24px;
+  text-shadow: none;
+}
+
+button:hover {
+  background-color: alpha(@matrix_fg, 0.12);
+  border-color: transparent;
+  color: @matrix_fg_bright;
+}
+
+button:focus {
+  background-color: alpha(@matrix_fg, 0.12);
+  border-color: transparent;
+  color: @matrix_fg_bright;
+  box-shadow: none;
+}
+
+button:active,
+button:checked {
+  background-color: alpha(@matrix_fg, 0.22);
+  border-color: transparent;
+  color: @matrix_fg_bright;
+}
+
+button:disabled {
+  background-color: transparent;
+  border-color: transparent;
+  color: @matrix_fg_dim;
+}
+
+/* The default action ("Continue") is the one lit up: solid green,
+ * console-dark text, focus included. */
+button.suggested-action,
+button.suggested-action:hover,
+button.suggested-action:focus,
+button.suggested-action:active,
+button.default {
+  background-color: @matrix_fg;
+  border-color: transparent;
+  color: @matrix_bg;
+}
+
+button.suggested-action:hover,
+button.default:hover {
+  background-color: alpha(@matrix_fg, 0.88);
+}
+
+button.destructive-action {
+  background-color: alpha(@matrix_error, 0.14);
+  border-color: transparent;
+  color: @matrix_error;
+}
+
+/* --- checkbox ("Automatically unlock whenever I'm logged in") ------------- */
+
+checkbutton {
+  color: @matrix_fg;
+}
+
+checkbutton check,
+check {
+  border-radius: 0;
+  background-color: @matrix_bg_deep;
+  background-image: none;
+  -gtk-icon-shadow: none;
+  border: 1px solid alpha(@matrix_accent, 0.45);
+  color: @matrix_fg_bright;
+  box-shadow: none;
+  min-width: 14px;
+  min-height: 14px;
+}
+
+checkbutton check:checked,
+checkbutton check:indeterminate,
+check:checked,
+check:indeterminate {
+  /* Adwaita paints the checked box with a blue gradient, not a flat colour --
+   * clearing background-image is what actually kills the blue. */
+  background-image: none;
+  background-color: alpha(@matrix_accent, 0.30);
+  border-color: @matrix_accent;
+  color: @matrix_fg_bright;
+  box-shadow: none;
+}
+
+/* --- password strength meter --------------------------------------------- */
+
+progressbar trough,
+levelbar trough {
+  background-color: @matrix_bg_deep;
+  border: 1px solid alpha(@matrix_accent, 0.25);
+  min-height: 4px;
+}
+
+progressbar progress,
+levelbar block.filled {
+  background-color: @matrix_fg;
+  background-image: none;
+  border: none;
+  min-height: 4px;
+}
+
+levelbar block.empty {
+  background-color: transparent;
+  border: none;
+}
+
+/* --- misc chrome --------------------------------------------------------- */
+
+headerbar {
+  background-color: @matrix_bg;
+  background-image: none;
+  border-bottom: 1px solid alpha(@matrix_accent, 0.35);
+  color: @matrix_fg;
+  box-shadow: none;
+  min-height: 30px;
+}
+
+/* Adwaita paints the action area a shade lighter than the content area; the
+ * prompt is one small card, so keep it a single flat surface. */
+.dialog-action-box,
+.dialog-action-area,
+.dialog-vbox,
+box.dialog-vbox,
+.titlebar:not(headerbar) {
+  background-color: @matrix_bg;
+  border-top-color: alpha(@matrix_accent, 0.25);
+}
+
+separator {
+  background-color: alpha(@matrix_accent, 0.25);
+  color: alpha(@matrix_accent, 0.25);
+  min-width: 1px;
+  min-height: 1px;
+}
+
+image {
+  color: @matrix_accent;
+}
+
+tooltip,
+tooltip.background {
+  background-color: @matrix_bg;
+  border: 1px solid @matrix_accent;
+  color: @matrix_fg_bright;
+}
+
+/* Failed-attempt warning from gcr. */
+label.error,
+.warning label,
+infobar.error {
+  color: @matrix_error;
+}

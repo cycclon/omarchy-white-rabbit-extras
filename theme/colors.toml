@@ -1,0 +1,36 @@
+mode = "dark"
+
+# Dimmed phosphor green text; cyan accent drives the HUD frame and shell chrome.
+accent = "#45abbf"
+selection = "#0e4320"
+muted = "#1a5b30"
+
+background = "#020d06"
+dark_background = "#010804"
+darker_background = "#000402"
+lighter_background = "#0a2113"
+
+foreground = "#29cc52"
+dark_foreground = "#187533"
+light_foreground = "#64cc83"
+bright_foreground = "#a0ccad"
+
+# Rain-column gradient: dim trail into a bright leading glyph.
+hyprland_active_border = "rgba(378999ff) rgba(06506bff) 45deg"
+hyprland_inactive_border = "rgba(0d3b4acc)"
+
+red = "#00a028"
+yellow = "#3ecc62"
+orange = "#18cc44"
+green = "#00cc34"
+cyan = "#00b36e"
+blue = "#00934a"
+magenta = "#2ecc6d"
+brown = "#0d5c22"
+
+bright_red = "#31cc56"
+bright_yellow = "#6ecc86"
+bright_green = "#52cc70"
+bright_cyan = "#4acc9a"
+bright_blue = "#3ecc80"
+bright_magenta = "#70cc93"

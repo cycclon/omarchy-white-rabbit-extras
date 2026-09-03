@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "cycclon.glow",
+  "name": "Phosphor glow",
+  "version": "1.0.0",
+  "description": "Kid's Story phosphor bloom, beam warp and per-glyph grain via Hyprland screen shader for the White Rabbit theme.",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "GlowShader.qml"
+  }
+}

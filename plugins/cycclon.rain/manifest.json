@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "cycclon.rain",
+  "name": "Digital rain",
+  "version": "1.0.0",
+  "description": "Matrix digital-rain screensaver with hidden words, drawn beneath the CRT and glow overlays.",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Rain.qml"
+  }
+}

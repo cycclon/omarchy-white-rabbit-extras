@@ -1,0 +1,7 @@
+# Build artifacts
+hud-borders/*.so
+hud-borders/*.o
+
+# Editor/OS cruft
+.DS_Store
+*.swp
