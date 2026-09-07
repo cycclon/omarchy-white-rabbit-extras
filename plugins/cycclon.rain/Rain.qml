@@ -253,8 +253,10 @@ Item {
   }
   Component.onDestruction: screensaverToggle.apply(false)
 
-  // Keep the surface alive for the length of the fade-out, then drop it so a
-  // stray input region can never outlive the animation.
+  // The fade-out used to drop the whole surface after the animation; now the
+  // window stays mapped (see the note at the surface), so this timer only
+  // marks the rain fully hidden. It still stops the scene's frame clock via
+  // pane visibility, so nothing renders while idle.
   Timer {
     id: unmountTimer
     interval: root.fadeOut + 80
@@ -409,7 +411,12 @@ Item {
       readonly property alias scene: sceneLoader.item
 
       screen: modelData
-      visible: root.active && root.mounted
+      // Keep the window mapped once primed and fade content instead of
+      // toggling visibility: remapping the surface destroys and rebuilds the
+      // scene graph, and the layer textures the shader samples come back
+      // empty on the second mount -- every run after the first rendered
+      // black, with only the word-glow bloom flashing through.
+      visible: root.active && root.primed
       color: "transparent"
       anchors { top: true; bottom: true; left: true; right: true }
 
@@ -431,7 +438,11 @@ Item {
         id: pane
         anchors.fill: parent
         opacity: root.showing ? 1 : 0
-        visible: opacity > 0.001
+        enabled: root.showing
+        // Frame clock runs only while the rain is up: running: pane.visible
+        // on the scene, and visible follows `mounted`, which drops 320ms
+        // after the fade-out finishes.
+        visible: root.mounted
 
         Behavior on opacity {
           NumberAnimation {
@@ -455,7 +466,7 @@ Item {
         Component {
           id: sceneComponent
           RainScene {
-            running: pane.visible
+            running: root.showing
             fontSize: root.size
             speedScale: root.speed
             wordEvery: root.wordEvery

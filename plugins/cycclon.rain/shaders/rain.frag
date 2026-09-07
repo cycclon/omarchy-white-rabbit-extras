@@ -6,12 +6,17 @@
 // per column, white, static for the life of a drop. Nothing in that layer
 // moves, so it only re-renders when a column recycles or a glyph mutates.
 //
-// All the motion lives here. `dataSource` is a cols x 2 texture, one texel
-// column per rain column, rewritten every frame:
+// All the motion lives here. `dataSource` is a (cols*2) x 1 texture, two
+// texels per rain column, rewritten every frame:
 //
-//   row 0: r,g = head position, 16-bit over [-headBias, headScale-headBias]
-//          b   = trail length in rows
-//   row 1: r   = column brightness
+//   texel 0: r,g = head position, 16-bit over [-headBias, headScale-headBias]
+//            b   = trail length in rows
+//   texel 1: r   = column brightness
+//
+// Alpha is 1 in both texels. This layer is captured through layer.enabled,
+// which composites with premultiplied alpha, so anything riding in a texel's
+// own alpha channel would come back scaled by that same alpha -- brightness
+// gets its own texel instead of sharing one with the head/trail encoding.
 //
 // A pixel is lit when its cell sits between the head and the tail of its
 // column's drop. That is the whole effect: a moving window of brightness
@@ -55,9 +60,12 @@ void main() {
   float col = floor(fc.x / cell.x);
   float row = floor(fc.y / cell.y);
 
-  float u = (col + 0.5) / grid.x;
-  vec4 d0 = texture(dataSource, vec2(u, 0.25));
-  vec4 d1 = texture(dataSource, vec2(u, 0.75));
+  // Two texels per column, side by side in one row: v is irrelevant with
+  // nearest sampling, but 0.5 is the safe center.
+  float u0 = (col * 2.0 + 0.5) / (grid.x * 2.0);
+  float u1 = (col * 2.0 + 1.5) / (grid.x * 2.0);
+  vec4 d0 = texture(dataSource, vec2(u0, 0.5));
+  vec4 d1 = texture(dataSource, vec2(u1, 0.5));
 
   float head = (d0.r * 65280.0 + d0.g * 255.0) / 65535.0 * headScale - headBias;
   float trail = d0.b * 255.0;

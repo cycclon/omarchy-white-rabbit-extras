@@ -72,6 +72,7 @@ Item {
   property real pending: 0
 
   property var field: null
+  property int dbg: 0
   property var textItems: []
   property var headItems: []
   property var stateItems: []
@@ -101,7 +102,8 @@ Item {
   // The Repeaters are populated asynchronously, so the caches are filled the
   // first frame every delegate exists rather than in onCompleted.
   function cacheItems() {
-    if (textItems.length === cols && headItems.length === cols) return false
+    if (textItems.length === cols && headItems.length === cols
+        && stateItems.length === cols) return false
 
     var t = [], h = [], s = []
     for (var i = 0; i < cols; i++) {
@@ -142,6 +144,12 @@ Item {
       }
 
       var e = encodeHead(col.active ? col.head : -1000)
+      // Alpha is pinned to 1 on both texels: this layer is captured through
+      // layer.enabled, which composites it with premultiplied alpha. Any
+      // alpha below 1 scales r/g/b down with it, so an encoded value (head
+      // position, trail, brightness) can only ride in a channel whose texel
+      // alpha is exactly 1 -- otherwise it comes back corrupted by whatever
+      // brightness happened to be that frame.
       headItems[c].color = Qt.rgba(e.hi, e.lo, Math.min(col.trail, 255) / 255, 1)
       stateItems[c].color = Qt.rgba(col.bright, 0, 0, 1)
     }
@@ -150,6 +158,7 @@ Item {
     effect.wordRect = w ? Qt.vector4d(w.col0, w.col1, w.row0, w.row1)
                         : Qt.vector4d(-9, -9, -9, -9)
     effect.wordGlow = RainModel.glowAt(field)
+    if (dbg) { console.warn("rain: ticking normally after", dbg, "stalled frames"); dbg = 0 }
   }
 
   function forceWord(text, vertical) {
@@ -173,17 +182,22 @@ Item {
 
   // --- the glyph field -----------------------------------------------------
 
-  // Parked off to the side rather than hidden: an invisible item has no scene
-  // graph node, so there would be nothing for the layer to capture. The panel
-  // clips it away, and the shader below is what actually gets drawn.
+  // Rendered on screen, at the scene's own position, so the batch renderer
+  // never has grounds to cull it as off-viewport -- that culling is what
+  // blanked every run after the first when this content used to be parked
+  // off to the side (the layer texture came back stale/empty on remount, and
+  // only the word-glow bloom still flashed through). Direct compositing of
+  // this item is switched off with `hideSource` on the ShaderEffectSource
+  // below, not by z-order or position: a transparent pixel in the shader
+  // output does not hide whatever sits behind it at that same spot, so an
+  // on-screen source with no hideSource showed through as a full grid of raw
+  // white glyphs wherever the rain shader had nothing lit.
   Item {
-    id: glyphLayer
-    x: -scene.width - 64
+    id: glyphContent
+    x: 0
     y: 0
     width: scene.width
     height: scene.height
-    layer.enabled: true
-    layer.smooth: true
 
     Repeater {
       id: glyphRepeater
@@ -207,25 +221,39 @@ Item {
     }
   }
 
-  // Per-column state, one texel column each: head position and trail on the
-  // top row, brightness on the bottom. Rewritten every frame; at 2560 wide
-  // that is a 200x2 texture, which is cheaper to hand the GPU than any of the
-  // ways of saying the same thing in uniforms.
+  ShaderEffectSource {
+    id: glyphLayer
+    sourceItem: glyphContent
+    hideSource: true
+    smooth: true
+  }
+
+  // Per-column state, two texels each laid out side by side: head hi/lo and
+  // trail in the first (r,g,b), brightness in the second (r). One row, so
+  // the sampler can never blend this texel with a neighbouring row the way a
+  // cols-by-2 texture could -- that vertical blend was what turned every
+  // cell lit in the mapped-panel context. Two texels per column rather than
+  // one is what keeps brightness off the alpha channel: alpha has to stay at
+  // 1 everywhere in this layer (see tick()), so brightness needs a texel of
+  // its own instead of riding in the first one's `a`. Rewritten every frame;
+  // at 2560 wide that is a 400x1 texture, still cheaper to hand the GPU than
+  // any of the ways of saying the same thing in uniforms.
+  //
+  // Kept on screen and hidden via hideSource for the same reason as
+  // glyphContent above, rather than parked off to the side.
   Item {
-    id: dataLayer
-    x: -scene.width - 64
-    y: scene.height + 64
-    width: scene.cols
-    height: 2
-    layer.enabled: true
-    layer.smooth: false
+    id: dataContent
+    x: 0
+    y: 0
+    width: scene.cols * 2
+    height: 1
 
     Repeater {
       id: headRepeater
       model: scene.cols
       Rectangle {
         required property int index
-        x: index; y: 0; width: 1; height: 1
+        x: index * 2; y: 0; width: 1; height: 1
         antialiasing: false
         color: "black"
       }
@@ -236,11 +264,18 @@ Item {
       model: scene.cols
       Rectangle {
         required property int index
-        x: index; y: 1; width: 1; height: 1
+        x: index * 2 + 1; y: 0; width: 1; height: 1
         antialiasing: false
         color: "black"
       }
     }
+  }
+
+  ShaderEffectSource {
+    id: dataLayer
+    sourceItem: dataContent
+    hideSource: true
+    smooth: false
   }
 
   ShaderEffect {
