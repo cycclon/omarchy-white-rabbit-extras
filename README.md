@@ -154,7 +154,7 @@ the dev machine at 2560×1440 / 60 Hz:
 ## Install
 
 ```sh
-git clone <repo-url> ~/.local/src/omarchy-white-rabbit-theme
+git clone https://github.com/cycclon/omarchy-white-rabbit-theme ~/.local/src/omarchy-white-rabbit-theme
 cd ~/.local/src/omarchy-white-rabbit-theme
 ./install.sh
 ```
