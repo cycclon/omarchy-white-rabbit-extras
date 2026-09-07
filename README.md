@@ -383,6 +383,13 @@ graphics backends. Rebuild after editing a `.frag`/`.vert`:
 /usr/lib/qt6/bin/qsb --glsl "100 es,120,150" --hlsl 50 --msl 12 shaders/rain.frag -o shaders/rain.frag.qsb
 ```
 
+## Contributing
+
+Forking, cloning, and running your own modified copy needs no permission --
+the license already grants that. Pull requests are welcome and reviewed, but
+go through the maintainer before anything is merged. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for what makes a PR easy to say yes to.
+
 ## Credits
 
 - [Omarchy](https://omarchy.org/) and its plugin/shell architecture, which
@@ -393,4 +400,5 @@ graphics backends. Rebuild after editing a `.frag`/`.vert`:
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Contributions are accepted under the same
+license.
