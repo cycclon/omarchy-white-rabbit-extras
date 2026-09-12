@@ -115,8 +115,16 @@ the dev machine at 2560×1440 / 60 Hz:
 
 - **`hud-borders` links Hyprland's internal API, not a stable plugin ABI.**
   A Hyprland update *will* eventually stop it from loading until it's
-  rebuilt (`hud-borders/rebuild.sh` — needs `hyprpm update` to have current
-  headers first). This is the single most fragile piece of the whole theme.
+  rebuilt (`hud-borders/rebuild.sh`). The ABI check hashes Hyprland's commit
+  *plus the versions of its dependency libraries* (aquamarine, hyprutils,
+  …), so a distro upgrade of just one dependency can break the plugin even
+  when the Hyprland version is unchanged — and `hyprpm update` alone doesn't
+  always fix it, because its cached headers can pin stale dependency
+  versions while still reporting "Headers up to date". The rebuild script
+  handles all of this: it builds against the distro's own `hyprland.pc`
+  headers when available (always in lockstep with the running binary) and
+  otherwise checks and repairs the hyprpm cache before building. This is
+  the single most fragile piece of the whole theme.
 - **Without `hud-borders` loaded, windows have no visible border at all.**
   `theme/hyprland.lua` sets `border_size = 0` and `add_borders = 0` on the
   assumption that the native plugin is drawing the frame instead. If you skip
@@ -209,8 +217,10 @@ omarchy plugin enable cycclon.glow
 omarchy plugin enable cycclon.rain
 
 # 3. hud-borders (optional — skip for a plain border)
-hyprpm update   # only if you don't already have current Hyprland headers
 ( cd hud-borders && ./rebuild.sh )
+# The script finds headers itself: the distro's hyprland.pc if the package
+# ships one, else hyprpm's cache (which it checks and repairs if stale).
+# Only run 'hyprpm update' if the script tells you to.
 # then add to ~/.config/hypr/autostart.lua:
 #   hl.on("hyprland.start", function()
 #     hl.exec_cmd("hyprctl plugin load " .. os.getenv("HOME") .. "/.local/src/omarchy-white-rabbit-theme/hud-borders/hud-borders.so")

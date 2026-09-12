@@ -22,8 +22,25 @@ from one another and carry decoration.
 ./rebuild.sh
 ```
 
-Requires the Hyprland headers from `hyprpm update`, plus cairo and a C++23
-compiler.
+The script locates Hyprland headers itself, in this order:
+
+1. **Distro headers** — `hyprland.pc` on the default pkg-config path (the
+   Arch package ships one). These are built from the same commit with the
+   same dependency versions as the running binary, so they always match.
+2. **hyprpm's cache** (`/var/cache/hyprpm/$USER/headersRoot`) — used only
+   when the distro ships no headers (e.g. NixOS). The plugin ABI hash
+   embeds Hyprland's commit hash *plus* the version strings of aquamarine,
+   hyprutils, hyprgraphics, hyprcursor and hyprlang; hyprpm's cached
+   headers carry the versions pinned in Hyprland's source, which can fall
+   behind what the distro actually installed. The script detects that,
+   rewrites the stale version macros in the cache, and only then builds.
+   A cache whose commit hash differs from the running compositor is an
+   error — `hyprpm update` is the only fix for that.
+
+It also checks the plugin's load result afterwards and reports the remedy
+instead of leaving you with a silent "reloaded" and an unloaded plugin.
+
+Requires cairo and a C++23 compiler. (Only `hyprpm update` when told.)
 
 ## Install / load
 
@@ -82,7 +99,12 @@ hl.config({
   every frame, so each frame re-renders and re-uploads a full window-sized
   surface. Fine for tiled use; visible on a large floating window dragged by a
   corner. The fix is a 9-slice (fixed corner textures + `renderRect` edges).
-- **Hyprland updates break it.** Run `./rebuild.sh` after every update.
+- **Hyprland and its dependency libraries break it on update.** The plugin
+  ABI hash includes the versions of aquamarine/hyprutils/hyprgraphics/
+  hyprcursor/hyprlang, so any of them moving can stop the plugin from
+  loading even when Hyprland itself is unchanged. Run `./rebuild.sh` after
+  every update that touches any of those packages; it repairs a stale
+  hyprpm header cache itself.
 
 ## Fallback
 
