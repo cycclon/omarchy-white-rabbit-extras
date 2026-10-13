@@ -6,6 +6,10 @@ cyan HUD window frames — Kid's Story terminal, not a movie poster.
 
 ![preview](preview.png)
 
+| The HUD menu | The digital-rain screensaver |
+|---|---|
+| ![menu](preview-menu.png) | ![screensaver](preview-rain.png) |
+
 ## What this is
 
 Six pieces working together under one Hyprland session:
