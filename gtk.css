@@ -60,6 +60,22 @@ label {
                0 0 14px alpha(#28dc5a, 0.10);
 }
 
+/* Button labels must follow the button's colour, not this file's green
+ * label rule -- a direct label match beats the inherited button color and
+ * left the lit chip's text invisible (green on green). Buttons read flat:
+ * the glow is scoped out too. GTK3 (gcr-prompter) has no `inherit`, so the
+ * green is restated and the chip rule below pins its label dark. */
+button label {
+  color: @matrix_fg;
+  color: inherit;
+  text-shadow: none;
+}
+
+button.suggested-action label,
+button.default label {
+  color: @matrix_bg;
+}
+
 label.dim-label,
 label:disabled,
 .dim-label {

@@ -1,8 +1,9 @@
 # hud-borders
 
 A Hyprland plugin that draws sci-fi HUD window frames: per-corner chamfers,
-corner ticks, a heavier bar on the top-right cut, and a diagonal hatch block in
-the bottom-right corner.
+notches in the side edges, a slanted gauge on the bottom line, corner ticks, a
+heavier bar on the top-right cut, and a diagonal hatch block in the
+bottom-right corner.
 
 ## Why it exists
 
@@ -73,7 +74,13 @@ hl.config({
       chamfer_top_left     = 10,
       chamfer_top_right    = 40,   -- the asymmetric one
       chamfer_bottom_right = 24,
-      chamfer_bottom_left  = 10,
+      chamfer_bottom_left  = 10,   -- 0 leaves a corner square
+
+      -- Notches stepped into the side edges at 45 degrees. Start and length
+      -- are percentages of the window height (length includes both slopes);
+      -- depth is in px, 0 = off.
+      notch_right_start = 40, notch_right_length = 20, notch_right_depth = 0,
+      notch_left_start  = 70, notch_left_length  = 15, notch_left_depth  = 0,
 
       corner_mask = true,
       -- col.mask above should match the window background.
@@ -81,6 +88,14 @@ hl.config({
       ticks       = true, tick_length = 16, tick_inset = 5,
       tab         = true, tab_length  = 34,   -- bar on the top-right cut
       hatch       = true, hatch_count = 3, hatch_size = 18,
+
+      -- Slanted bar plus trailing slashes inside the bottom line, leaning
+      -- like the bottom-right cut. gauge_start is a percentage of the width.
+      -- gauge_fill stretches the bar until the last slash stops one
+      -- gauge_gap short of that cut, and gauge_length is then ignored.
+      gauge = false, gauge_fill = false, gauge_start = 60,
+      gauge_height = 12, gauge_length = 72, gauge_inset = 2,
+      gauge_stripes = 3, gauge_stripe_width = 10, gauge_gap = 4,
     },
   },
 })

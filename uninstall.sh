@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Remove everything install.sh added: the theme, the three Quickshell
-# plugins, and the hud-borders autostart hook. Does not touch hud-borders.so
+# Remove everything install.sh added: the theme, the Quickshell plugins
+# (disabling the menu one brings Omarchy's built-in menu back), and the
+# hud-borders autostart hook. Does not touch hud-borders.so
 # itself or this checkout -- delete the cloned repo yourself if you're done
 # with it.
 set -euo pipefail
@@ -9,7 +10,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 THEME_NAME="white-rabbit"
 THEME_DST="$HOME/.config/omarchy/themes/$THEME_NAME"
 PLUGINS_DST="$HOME/.config/omarchy/plugins"
-PLUGIN_IDS=(cycclon.crt cycclon.glow cycclon.rain)
+PLUGIN_IDS=(cycclon.crt cycclon.glow cycclon.rain cycclon.menu)
 AUTOSTART="$HOME/.config/hypr/autostart.lua"
 ASSUME_YES=0
 
@@ -41,7 +42,7 @@ if [[ $current_theme == "$THEME_NAME" ]]; then
   exit 1
 fi
 
-confirm "Remove the White Rabbit theme, its three plugins, and the hud-borders autostart hook?" || exit 1
+confirm "Remove the White Rabbit theme, its plugins, and the hud-borders autostart hook?" || exit 1
 
 note "Removing plugins"
 for id in "${PLUGIN_IDS[@]}"; do

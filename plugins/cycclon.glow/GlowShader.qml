@@ -22,6 +22,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import "./settings.js" as Settings
 
 Item {
@@ -194,11 +195,113 @@ Item {
   Component.onCompleted: applyTimer.start()
 
   // Small delay at startup: Hyprland's lua config must be in place before we
-  // touch the option, and writing the shader file right away is fine.
+  // touch the option, and writing the shader file right away is fine. The
+  // first move is a probe rather than an apply -- see seeding in reconcile().
   Timer {
     id: applyTimer
     interval: 1500
-    onTriggered: root.apply()
+    onTriggered: root.probe()
+  }
+
+  // --- self-healing --------------------------------------------------------
+
+  // decoration:screen_shader is a runtime-only option here: nothing writes it
+  // to a config file, so every `hyprctl reload` -- including the one inside
+  // `omarchy theme set`, even when the theme set is a no-op re-apply of the
+  // current theme -- resets it to empty and takes the slot back. Neither
+  // `enabled` nor `matrixTheme` moves when that happens, so apply() never
+  // re-fires on its own: the glow silently vanishes while `glow status` still
+  // reports "on", because status reports this plugin's flag and not Hyprland's
+  // live option.
+  //
+  // liveShaderPath is therefore a belief, and a belief has to be checked.
+  // probe() asks Hyprland what it actually has; reconcile() compares and
+  // repairs. configreloaded catches the common case at once, and the slow
+  // timer covers every other way the option can go (a hand-run hyprctl
+  // keyword, another tool claiming the slot) for one getoption a minute.
+
+  // Seeded on the first probe, before the first apply: a previous shell may
+  // have left one of our own shaders loaded, and apply() can only force a
+  // recompile if it knows to flip to the OTHER file. Without the seed it would
+  // re-point at the file already loaded, write fresh params to disk, and leave
+  // Hyprland running the stale compiled shader.
+  property bool seeded: false
+
+  Process {
+    id: shaderProbe
+    command: ["hyprctl", "-j", "getoption", "decoration:screen_shader"]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: root.reconcile(text)
+    }
+  }
+
+  function probe() {
+    shaderProbe.running = false
+    shaderProbe.running = true
+  }
+
+  function reconcile(raw) {
+    var live
+    try {
+      live = String(JSON.parse(raw).str || "").trim()
+    } catch (e) {
+      return // hyprctl not answering yet; the next tick asks again
+    }
+    // How Hyprland spells an unset string option in the plain-text form; it
+    // has been seen in the json too, so it is normalised here either way.
+    if (live === "[[EMPTY]]") live = ""
+
+    if (!seeded) {
+      seeded = true
+      liveShaderPath = live
+      apply()
+      return
+    }
+
+    if (live === liveShaderPath) return
+
+    if (matrixTheme && enabled) {
+      liveShaderPath = live
+      console.info("glow: screen_shader",
+                   live === "" ? "was cleared" : "was taken by " + live,
+                   "-- reclaiming")
+      apply()
+    } else if (shaderPaths.indexOf(live) !== -1) {
+      // Meant to be off, but one of our own shaders is still loaded -- a
+      // leftover. Clear only ever our own: a shader belonging to something
+      // else is not ours to drop.
+      liveShaderPath = live
+      apply()
+    } else {
+      // Off, and the slot belongs to someone else. Record it and keep out.
+      liveShaderPath = live
+    }
+  }
+
+  Connections {
+    target: Hyprland
+
+    function onRawEvent(event) {
+      // Fires on `hyprctl reload`, and so on every `omarchy theme set`.
+      if (event.name === "configreloaded")
+        healDelay.restart()
+    }
+  }
+
+  // Let the reload settle before reading the option back.
+  Timer {
+    id: healDelay
+    interval: 400
+    onTriggered: root.probe()
+  }
+
+  // Backstop for anything that clears the option without a config reload.
+  Timer {
+    interval: 60000
+    repeat: true
+    running: true
+    onTriggered: root.probe()
   }
 
   // --- IPC -----------------------------------------------------------------

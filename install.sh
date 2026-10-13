@@ -2,9 +2,12 @@
 # Install the White Rabbit theme into a running Omarchy session.
 #
 # What this does, in order:
-#   1. copies theme/            -> ~/.config/omarchy/themes/whiterabbit/
+#   1. copies the theme files at the repo root -> ~/.config/omarchy/themes/white-rabbit/
+#      (hyprland.lua.example and foot.ini.example are installed as the real
+#      hyprland.lua and foot.ini)
 #   2. copies plugins/cycclon.* -> ~/.config/omarchy/plugins/cycclon.*/
-#      and enables them in the running shell
+#      and enables them in the running shell; cycclon.menu, which replaces
+#      Omarchy's built-in menu, is asked about separately
 #   3. optionally builds hud-borders/ (a native Hyprland plugin) and wires it
 #      into ~/.config/hypr/autostart.lua
 #   4. applies the theme and restarts the shell
@@ -23,18 +26,22 @@ THEME_NAME="white-rabbit"
 THEME_DST="$HOME/.config/omarchy/themes/$THEME_NAME"
 PLUGINS_DST="$HOME/.config/omarchy/plugins"
 PLUGIN_IDS=(cycclon.crt cycclon.glow cycclon.rain)
+MENU_ID="cycclon.menu"
 AUTOSTART="$HOME/.config/hypr/autostart.lua"
 ASSUME_YES=0
 SKIP_HUD_BORDERS=0
+SKIP_MENU=0
 
 for arg in "$@"; do
   case "$arg" in
     --yes|-y) ASSUME_YES=1 ;;
     --no-hud-borders) SKIP_HUD_BORDERS=1 ;;
+    --no-menu) SKIP_MENU=1 ;;
     --help|-h)
-      echo "Usage: ./install.sh [--yes] [--no-hud-borders]"
+      echo "Usage: ./install.sh [--yes] [--no-hud-borders] [--no-menu]"
       echo "  --yes              don't prompt for confirmation"
       echo "  --no-hud-borders   skip the native window-frame plugin entirely"
+      echo "  --no-menu          keep Omarchy's built-in menu"
       exit 0
       ;;
     *) echo "Unknown option: $arg" >&2; exit 1 ;;
@@ -67,24 +74,38 @@ fi
 cat <<'EOF'
 White Rabbit installs three unsandboxed Quickshell plugins (they run as plain
 QML inside your existing omarchy-shell process, with the same access as the
-rest of your desktop) and, optionally, a native Hyprland plugin built from C++
-source and loaded with `hyprctl plugin load`. Review the code in theme/,
+rest of your desktop), optionally a fourth that replaces Omarchy's menu, and,
+optionally, a native Hyprland plugin built from C++
+source and loaded with `hyprctl plugin load`. Review hyprland.lua.example,
 plugins/ and hud-borders/ before continuing if you have not already.
 EOF
 confirm "Continue?" || exit 1
 
 # --- 1. theme --------------------------------------------------------------
 
+# The theme files live at the repo root so `omarchy theme install` finds them.
+# That route stages only the palette and backgrounds: Omarchy drops
+# hyprland.lua and terminal configs from a git-cloned theme, which is why the
+# repo carries them as *.example. This installer copies them in under their
+# real names, into a directory with no .git, so they take effect.
+THEME_FILES=(backgrounds colors.toml gtk.css gtk4.css icons.theme preview.png shell.*.toml)
+
+if [[ $ROOT -ef $THEME_DST ]]; then
+  fail "this checkout IS $THEME_DST (installed via 'omarchy theme install'?). Clone the repo somewhere else, e.g. ~/.local/src, and run install.sh from there -- it replaces that directory."
+fi
+
 note "Installing theme to $THEME_DST"
 if [[ -d $THEME_DST/.git ]]; then
-  warn "removing a .git directory found in an existing $THEME_DST"
-  warn "(a theme installed via 'omarchy theme install' silently drops hyprland.lua"
-  warn " and foot.ini for safety -- this installer needs those staged, so it always"
+  warn "replacing the git clone found at $THEME_DST"
+  warn "(a theme installed via 'omarchy theme install' drops hyprland.lua and"
+  warn " foot.ini for safety -- this installer needs those staged, so it always"
   warn " replaces the theme directory outright rather than layering onto that clone)"
 fi
 rm -rf "$THEME_DST"
 mkdir -p "$THEME_DST"
-cp -r "$ROOT"/theme/. "$THEME_DST"/
+( cd "$ROOT" && cp -r "${THEME_FILES[@]}" "$THEME_DST"/ )
+cp "$ROOT/hyprland.lua.example" "$THEME_DST/hyprland.lua"
+cp "$ROOT/foot.ini.example" "$THEME_DST/foot.ini"
 
 # --- 2. quickshell plugins ---------------------------------------------------
 
@@ -99,6 +120,21 @@ omarchy-shell shell rescanPlugins >/dev/null
 for id in "${PLUGIN_IDS[@]}"; do
   omarchy plugin enable "$id" >/dev/null 2>&1 || true
 done
+
+# The menu is a copy of Omarchy's own menu plugin with the HUD frame and
+# animations added. Enabling a plugin whose manifest names a clonedFrom source
+# swaps it in for that built-in; disabling it swaps the built-in back.
+if (( SKIP_MENU )); then
+  note "Skipping $MENU_ID (--no-menu)"
+elif confirm "Replace Omarchy's Super+Space menu with the White Rabbit one? (a snapshot of Omarchy's menu code with the HUD frame and animations; './uninstall.sh' or 'omarchy plugin disable $MENU_ID' restores the built-in menu)"; then
+  note "Installing $MENU_ID"
+  rm -rf "${PLUGINS_DST:?}/$MENU_ID"
+  cp -r "$ROOT/plugins/$MENU_ID" "$PLUGINS_DST/$MENU_ID"
+  omarchy-shell shell rescanPlugins >/dev/null
+  omarchy plugin enable "$MENU_ID" >/dev/null 2>&1 || warn "could not enable $MENU_ID -- run: omarchy plugin enable $MENU_ID"
+else
+  note "Skipping $MENU_ID"
+fi
 
 # --- 3. hud-borders (optional, native plugin) -------------------------------
 
@@ -153,7 +189,7 @@ EOF
   fi
   hyprctl plugin load "$ROOT/hud-borders/hud-borders.so" >/dev/null 2>&1 || true
 else
-  warn "hud-borders is not loaded. theme/hyprland.lua sets border_size = 0 and"
+  warn "hud-borders is not loaded. hyprland.lua sets border_size = 0 and"
   warn "add_borders = 0 because it expects hud-borders to draw the frame instead --"
   warn "without it every window will have NO visible border at all. Either re-run"
   warn "this installer, run hud-borders/rebuild.sh by hand later, or open"

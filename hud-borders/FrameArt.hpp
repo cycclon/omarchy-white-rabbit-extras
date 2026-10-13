@@ -12,6 +12,13 @@ struct SFrameParams {
     double outer = 1, gap = 3, inner = 2;
     double chamTL = 8, chamTR = 8, chamBR = 8, chamBL = 8;
 
+    // Notches in the side edges: the line steps inward at 45 degrees, runs
+    // straight at the given depth, and steps back out. Start and length are
+    // fractions of the frame height, measured from the top; the length
+    // includes both slopes.
+    double notchRStart = 0.4, notchRLength = 0.2, notchRDepth = 0;
+    double notchLStart = 0.7, notchLLength = 0.15, notchLDepth = 0;
+
     bool   ticks = true;
     double tickLength = 14, tickInset = 6;
 
@@ -21,6 +28,16 @@ struct SFrameParams {
     bool   hatch = true;
     int    hatchCount = 3;
     double hatchSize = 16;
+
+    // Gauge on the inside of the bottom line: a long slanted bar followed by
+    // short slashes, all at the 45 degrees of the bottom-right cut. Start is a
+    // fraction of the frame width; the rest are pixels. With gaugeFill the
+    // bar stretches so the last slash stops one gap short of that cut, and
+    // gaugeLength is ignored.
+    bool   gauge = false, gaugeFill = false;
+    double gaugeStart = 0.6, gaugeHeight = 12, gaugeLength = 72, gaugeInset = 2;
+    int    gaugeStripes = 3;
+    double gaugeStripeWidth = 10, gaugeGap = 4;
 
     // Fills the cut corners so window content does not show through a chamfer
     // deeper than decoration:rounding. Hyprland rounds content uniformly and a

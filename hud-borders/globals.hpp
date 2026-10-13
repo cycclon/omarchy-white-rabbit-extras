@@ -29,6 +29,14 @@ struct SHudVars {
     SP<Config::Values::CIntValue>   chamferBR;
     SP<Config::Values::CIntValue>   chamferBL;
 
+    // Side-edge notches. Start and length are percentages of the frame height.
+    SP<Config::Values::CIntValue>   notchRightStart;
+    SP<Config::Values::CIntValue>   notchRightLength;
+    SP<Config::Values::CIntValue>   notchRightDepth;
+    SP<Config::Values::CIntValue>   notchLeftStart;
+    SP<Config::Values::CIntValue>   notchLeftLength;
+    SP<Config::Values::CIntValue>   notchLeftDepth;
+
     // Ornaments.
     SP<Config::Values::CBoolValue>  ticks;
     SP<Config::Values::CIntValue>   tickLength;
@@ -40,6 +48,16 @@ struct SHudVars {
     SP<Config::Values::CBoolValue>  hatch;
     SP<Config::Values::CIntValue>   hatchCount;
     SP<Config::Values::CIntValue>   hatchSize;
+
+    SP<Config::Values::CBoolValue>  gauge;
+    SP<Config::Values::CBoolValue>  gaugeFill;
+    SP<Config::Values::CIntValue>   gaugeStart;
+    SP<Config::Values::CIntValue>   gaugeHeight;
+    SP<Config::Values::CIntValue>   gaugeLength;
+    SP<Config::Values::CIntValue>   gaugeInset;
+    SP<Config::Values::CIntValue>   gaugeStripes;
+    SP<Config::Values::CIntValue>   gaugeStripeWidth;
+    SP<Config::Values::CIntValue>   gaugeGap;
 };
 
 inline SHudVars hudVars = {};

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "cycclon.menu",
+  "name": "White Rabbit menu",
+  "version": "1.0.0",
+  "author": "cycclon",
+  "description": "Omarchy's command menu with the White Rabbit HUD frame, CRT power-on flicker and sliding submenus.",
+  "kinds": [
+    "menu",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "menu": "Menu.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "White Rabbit menu",
+    "description": "Launches the Omarchy menu",
+    "category": "Compositor",
+    "allowMultiple": false
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.menu"
+  }
+}

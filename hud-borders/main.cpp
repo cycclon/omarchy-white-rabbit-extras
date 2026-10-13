@@ -62,6 +62,15 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     reg(hudVars.chamferBR, "plugin:hud-borders:chamfer_bottom_right", "Corner cut depth, bottom right", 24, SIntValueOptions{.min = 0, .max = 512});
     reg(hudVars.chamferBL, "plugin:hud-borders:chamfer_bottom_left", "Corner cut depth, bottom left", 10, SIntValueOptions{.min = 0, .max = 512});
 
+    reg(hudVars.notchRightStart, "plugin:hud-borders:notch_right_start", "Where the right-edge notch begins, percent of height", 40, SIntValueOptions{.min = 0, .max = 100});
+    reg(hudVars.notchRightLength, "plugin:hud-borders:notch_right_length", "Height of the right-edge notch including its slopes, percent of height", 20,
+        SIntValueOptions{.min = 0, .max = 100});
+    reg(hudVars.notchRightDepth, "plugin:hud-borders:notch_right_depth", "How far the right-edge notch steps inward (0 = off)", 0, SIntValueOptions{.min = 0, .max = 512});
+    reg(hudVars.notchLeftStart, "plugin:hud-borders:notch_left_start", "Where the left-edge notch begins, percent of height", 70, SIntValueOptions{.min = 0, .max = 100});
+    reg(hudVars.notchLeftLength, "plugin:hud-borders:notch_left_length", "Height of the left-edge notch including its slopes, percent of height", 15,
+        SIntValueOptions{.min = 0, .max = 100});
+    reg(hudVars.notchLeftDepth, "plugin:hud-borders:notch_left_depth", "How far the left-edge notch steps inward (0 = off)", 0, SIntValueOptions{.min = 0, .max = 512});
+
     reg(hudVars.ticks, "plugin:hud-borders:ticks", "Draw short accent ticks near each corner", true);
     reg(hudVars.tickLength, "plugin:hud-borders:tick_length", "Length of the corner ticks", 16, SIntValueOptions{.min = 0, .max = 512});
     reg(hudVars.tickInset, "plugin:hud-borders:tick_inset", "How far ornaments sit inside the inner line", 5, SIntValueOptions{.min = 0, .max = 128});
@@ -72,6 +81,16 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     reg(hudVars.hatch, "plugin:hud-borders:hatch", "Draw the diagonal hatch in the bottom-right corner", true);
     reg(hudVars.hatchCount, "plugin:hud-borders:hatch_count", "Number of hatch strokes", 3, SIntValueOptions{.min = 0, .max = 16});
     reg(hudVars.hatchSize, "plugin:hud-borders:hatch_size", "Length of each hatch stroke", 18, SIntValueOptions{.min = 0, .max = 256});
+
+    reg(hudVars.gauge, "plugin:hud-borders:gauge", "Draw the slanted gauge inside the bottom line", false);
+    reg(hudVars.gaugeFill, "plugin:hud-borders:gauge_fill", "Stretch the gauge until one gap short of the bottom-right cut", false);
+    reg(hudVars.gaugeStart, "plugin:hud-borders:gauge_start", "Where the gauge begins, percent of width", 60, SIntValueOptions{.min = 0, .max = 100});
+    reg(hudVars.gaugeHeight, "plugin:hud-borders:gauge_height", "Height of the gauge", 12, SIntValueOptions{.min = 0, .max = 128});
+    reg(hudVars.gaugeLength, "plugin:hud-borders:gauge_length", "Length of the gauge's main bar", 72, SIntValueOptions{.min = 0, .max = 1024});
+    reg(hudVars.gaugeInset, "plugin:hud-borders:gauge_inset", "Space between the bottom line and the gauge", 2, SIntValueOptions{.min = 0, .max = 64});
+    reg(hudVars.gaugeStripes, "plugin:hud-borders:gauge_stripes", "Number of slashes after the main bar", 3, SIntValueOptions{.min = 0, .max = 32});
+    reg(hudVars.gaugeStripeWidth, "plugin:hud-borders:gauge_stripe_width", "Width of each slash", 10, SIntValueOptions{.min = 0, .max = 256});
+    reg(hudVars.gaugeGap, "plugin:hud-borders:gauge_gap", "Space between the bar and each slash", 4, SIntValueOptions{.min = 0, .max = 64});
 
     HyprlandAPI::reloadConfig();
 

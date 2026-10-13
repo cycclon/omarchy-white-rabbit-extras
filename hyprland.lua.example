@@ -40,7 +40,7 @@ hl.config({
     -- can differ from one another and carry ornaments.
     hud_borders = {
       outer_thickness = 1,
-      gap             = 3,
+      gap             = 1,
       inner_thickness = 2,
 
       col = {
@@ -54,26 +54,60 @@ hl.config({
         mask           = "rgba(020d06f2)",
       },
 
-      chamfer_top_left     = 10,
-      chamfer_top_right    = 40,
-      chamfer_bottom_right = 24,
-      chamfer_bottom_left  = 10,
+      chamfer_top_left     = 24,
+      chamfer_top_right    = 0,
+      chamfer_bottom_right = 36,
+      chamfer_bottom_left  = 0,
 
-      ticks       = true,
+      -- A step cut into the right edge: in at 45 degrees at 20% of the height,
+      -- down, and back out by 50%. Length is a share of the window height and
+      -- includes both slopes; depth is how far in it steps.
+      notch_right_start  = 20,
+      notch_right_length = 30,
+      notch_right_depth  = 12,
+
+      -- A smaller, shallower one lower on the left edge, from 70% to 85%.
+      notch_left_start  = 70,
+      notch_left_length = 15,
+      notch_left_depth  = 8,
+
+      -- Ornaments off: ticks sit at all four corners, the tab rides the
+      -- top-right cut and the hatch the bottom-right one. The frame keeps its
+      -- chamfers -- only the marks inside them are gone. Lengths are left in
+      -- place so turning any one back on restores its former shape.
+      ticks       = false,
       tick_length = 16,
       tick_inset  = 5,
 
-      tab         = true,
+      tab         = false,
       tab_length  = 34,
 
-      hatch       = true,
+      hatch       = false,
       hatch_count = 3,
       hatch_size  = 18,
+
+      -- Gauge riding the inside of the bottom line from 60% across: a slanted
+      -- bar and three slashes, leaning at the bottom-right cut's 45 degrees.
+      -- gauge_fill stretches the bar so the last slash stops one gauge_gap
+      -- short of that cut; gauge_length only applies with it off.
+      gauge              = true,
+      gauge_fill         = true,
+      gauge_start        = 60,
+      gauge_height       = 12,
+      gauge_length       = 72,
+      gauge_inset        = 2,
+      gauge_stripes      = 3,
+      gauge_stripe_width = 10,
+      gauge_gap          = 4,
     },
   },
 
   decoration = {
-    rounding = 8,
+    -- Square content. hud-borders now leaves top-right and bottom-left at a
+    -- clean 90 degrees, and any rounding here would cut those corners of the
+    -- window content away, leaving a wallpaper-coloured notch inside the
+    -- square frame. The chamfered corners are covered by the plugin's mask.
+    rounding = 0,
     rounding_power = 1.0,
 
     -- Frosted glass, not a see-through window. The surface keeps a sliver of

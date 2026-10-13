@@ -4,17 +4,19 @@ A green-phosphor [Omarchy](https://omarchy.org/) theme built around a digital-ra
 screensaver, a CRT tube overlay, a phosphor bloom shader, and asymmetric
 cyan HUD window frames — Kid's Story terminal, not a movie poster.
 
-![preview](theme/preview.png)
+![preview](preview.png)
 
 ## What this is
 
 Six pieces working together under one Hyprland session:
+a theme, four Quickshell plugins and a native Hyprland plugin.
 
-- an Omarchy **theme** (`theme/`) — palette, terminal, GTK, and shell-chrome
-  colors, three background images, and the Hyprland config that ties the rest
-  together
-- three **Quickshell plugins** (`plugins/cycclon.*`) that run inside your
-  existing `omarchy-shell` process
+- an Omarchy **theme** (the files at the repo root) — palette, terminal, GTK,
+  and shell-chrome colors, three background images, and the Hyprland config
+  that ties the rest together (`hyprland.lua.example`)
+- four **Quickshell plugins** (`plugins/cycclon.*`) that run inside your
+  existing `omarchy-shell` process: the CRT overlay, the phosphor glow, the
+  digital-rain screensaver, and a restyled Omarchy menu
 - one **native Hyprland plugin** (`hud-borders/`), compiled C++, that draws
   the window frame
 
@@ -30,10 +32,16 @@ screensaver are each a small program.
 - **Three background images** — two digital-rain renders and a dense
   "code wall," sized for 2560×1440 and up.
 - **HUD window frames** (`hud-borders`) — the whole frame is drawn in cairo,
-  not Hyprland's built-in border, so each corner gets its own chamfer angle;
-  the default is a sharp cut top-left, a long 40° cut top-right with a tab,
-  square-ish bottom corners, corner ticks, and a diagonal hatch block in the
-  bottom-right.
+  not Hyprland's built-in border, so the outline is not a rounded rectangle.
+  As shipped: 45° cuts top-left and bottom-right, square top-right and
+  bottom-left corners, a notch stepped into the right edge and a smaller one
+  low on the left, and a slanted gauge with trailing slashes riding the
+  bottom line into the bottom-right cut. Corner ticks, a tab and a hatch
+  block are available too, off by default.
+- **HUD menu** (`cycclon.menu`) — Omarchy's Super+Space menu in the same
+  frame language but its own shape: the right edge steps inward partway down
+  and stays in, with a small gauge top-left. It powers on with a CRT flicker,
+  collapses to a bright line when closed, and slides between submenus.
 - **CRT tube overlay** (`cycclon.crt`) — a fullscreen shader adding
   scanlines, corner vignette, and a faint black-level haze over everything,
   screensaver included.
@@ -70,7 +78,7 @@ The rain is a `Top`-layer surface, not `Overlay`, specifically so the CRT
 overlay keeps compositing over it — an `Overlay`-layer screensaver would sit
 *above* the CRT tube instead of inside it. The phosphor glow needs no layer
 rule at all: `decoration:screen_shader` runs on the fully composited frame,
-rain included. See `theme/hyprland.lua` for the full comment trail; the sign
+rain included. See `hyprland.lua.example` for the full comment trail; the sign
 of Hyprland's `layer_rule order` (lower draws nearer the top) was arrived at
 by measurement, not documentation.
 
@@ -88,7 +96,7 @@ this combination has actually been run.
   Sans CJK. Without it, the affected glyphs fall back to whatever your
   system substitutes (typically empty boxes) — the rain still runs, just
   less authentically. `sudo pacman -S noto-fonts-cjk`.
-- **`yaru-icon-theme`** — named by `theme/icons.theme`. Purely cosmetic;
+- **`yaru-icon-theme`** — named by `icons.theme`. Purely cosmetic;
   skip it and GTK apps keep whatever icon theme you already had.
 - **To build `hud-borders`** (optional, see [Limitations](#limitations--drawbacks)):
   a C++23 compiler, `cairo`, `pixman-1`, `libdrm`, `pangocairo`, `libinput`,
@@ -126,13 +134,13 @@ the dev machine at 2560×1440 / 60 Hz:
   otherwise checks and repairs the hyprpm cache before building. This is
   the single most fragile piece of the whole theme.
 - **Without `hud-borders` loaded, windows have no visible border at all.**
-  `theme/hyprland.lua` sets `border_size = 0` and `add_borders = 0` on the
+  `hyprland.lua.example` sets `border_size = 0` and `add_borders = 0` on the
   assumption that the native plugin is drawing the frame instead. If you skip
   building it, or a Hyprland update breaks it and you haven't rebuilt yet,
   restore a plain border by editing those two values back to `2` in your
   installed `~/.config/omarchy/themes/white-rabbit/hyprland.lua` (`install.sh`
   warns you about this every time it can't load the plugin).
-- **Everything here runs unsandboxed.** The three Quickshell plugins are
+- **Everything here runs unsandboxed.** The Quickshell plugins are
   plain QML/JS loaded straight into your always-on `omarchy-shell` process —
   this is how every Omarchy plugin works, not something specific to this
   theme, but it's worth restating: read the code before you run it.
@@ -179,9 +187,12 @@ git pull
 `install.sh` is safe to re-run — every step replaces its own previous copy
 rather than merging. It:
 
-1. copies `theme/` to `~/.config/omarchy/themes/white-rabbit/`
+1. copies the theme files at the repo root to
+   `~/.config/omarchy/themes/white-rabbit/`, installing `hyprland.lua.example`
+   and `foot.ini.example` as `hyprland.lua` and `foot.ini`
 2. copies `plugins/cycclon.{crt,glow,rain}/` to
-   `~/.config/omarchy/plugins/` and enables each one in the running shell
+   `~/.config/omarchy/plugins/` and enables each one in the running shell,
+   then asks whether to install `cycclon.menu` in place of the built-in menu
 3. asks whether to build and load `hud-borders` (needs `hyprpm update` for
    current Hyprland headers if you haven't run that before); on success it
    adds a load hook to `~/.config/hypr/autostart.lua` (backed up first) — on
@@ -189,15 +200,19 @@ rather than merging. It:
 4. applies the theme (`omarchy theme set white-rabbit`) and restarts the shell
 
 Flags: `--yes` skips every prompt, `--no-hud-borders` skips the native
-plugin entirely (plain Hyprland border rendering — see Limitations).
+plugin entirely (plain Hyprland border rendering — see Limitations),
+`--no-menu` keeps Omarchy's built-in menu.
 
-> **Don't `omarchy theme install` this repo, and don't `git clone` it
-> straight into `~/.config/omarchy/themes/`.** Omarchy's own installer
-> deliberately drops `hyprland.lua` and any terminal config from a
-> git-tracked theme directory as a safety measure — reasonable for themes in
-> general, but this one *needs* `hyprland.lua` (that's where the window
-> frame, layer rules, and blur tuning live). Use `install.sh`, which stages
-> those files itself and explains what it's doing as it goes.
+> **`omarchy theme install` gives you the colors only.** It works on this
+> repo, and you get the palette, GTK and shell colors, and the backgrounds,
+> with Omarchy's standard window borders. Omarchy deliberately drops
+> `hyprland.lua` and any terminal config from a git-cloned theme as a safety
+> measure, so the repo ships those as `hyprland.lua.example` and
+> `foot.ini.example`, and that route installs neither them nor the plugins.
+> The window frame, layer rules, blur tuning, screensaver, CRT overlay and
+> glow all need `install.sh`, which stages those files itself and explains
+> what it's doing as it goes. Run it from a clone outside
+> `~/.config/omarchy/themes/`.
 
 ### Doing it by hand
 
@@ -205,7 +220,11 @@ If you'd rather review each step yourself instead of running the script:
 
 ```sh
 # 1. theme
-cp -r theme/. ~/.config/omarchy/themes/white-rabbit/
+mkdir -p ~/.config/omarchy/themes/white-rabbit
+cp -r backgrounds colors.toml gtk.css gtk4.css icons.theme preview.png shell.*.toml \
+  ~/.config/omarchy/themes/white-rabbit/
+cp hyprland.lua.example ~/.config/omarchy/themes/white-rabbit/hyprland.lua
+cp foot.ini.example     ~/.config/omarchy/themes/white-rabbit/foot.ini
 
 # 2. plugins
 cp -r plugins/cycclon.crt  ~/.config/omarchy/plugins/cycclon.crt
@@ -215,6 +234,10 @@ omarchy-shell shell rescanPlugins
 omarchy plugin enable cycclon.crt
 omarchy plugin enable cycclon.glow
 omarchy plugin enable cycclon.rain
+# optional: the HUD menu, replacing the built-in one
+cp -r plugins/cycclon.menu ~/.config/omarchy/plugins/cycclon.menu
+omarchy-shell shell rescanPlugins
+omarchy plugin enable cycclon.menu
 
 # 3. hud-borders (optional — skip for a plain border)
 ( cd hud-borders && ./rebuild.sh )
@@ -239,7 +262,7 @@ omarchy theme set <some-other-theme>   # can't remove the active theme
 ./uninstall.sh
 ```
 
-Removes the theme, the three plugins, and the `hud-borders` autostart hook.
+Removes the theme, the plugins (restoring the built-in menu), and the `hud-borders` autostart hook.
 Doesn't delete this checkout — remove the directory yourself once you're done.
 
 ## Configuration
@@ -267,7 +290,8 @@ Edit any of these under the installed theme directory and re-run
 
 ### HUD window frame (`hud-borders`)
 
-Config lives under `plugin.hud_borders` in `theme/hyprland.lua`:
+Config lives under `plugin.hud_borders` in `hyprland.lua.example` (installed as
+`~/.config/omarchy/themes/white-rabbit/hyprland.lua`):
 
 | Key                                    | Meaning                                   |
 |------------------------------------------|--------------------------------------------|
@@ -275,13 +299,38 @@ Config lives under `plugin.hud_borders` in `theme/hyprland.lua`:
 | `col.active` / `col.inactive`             | main line color, focused / unfocused        |
 | `col.outer_active` / `col.outer_inactive` | hairline color                              |
 | `col.mask`                                | painted into corner cuts deeper than `decoration:rounding` — should match your window background, or the cut shows a visible patch |
-| `chamfer_top_left/top_right/bottom_right/bottom_left` | corner cut depth, per corner |
+| `chamfer_top_left/top_right/bottom_right/bottom_left` | corner cut depth, per corner (0 = square) |
+| `notch_right_start`, `notch_right_length`, `notch_right_depth` | notch in the right edge: start and length as % of window height (length includes both slopes), depth in px (0 = off) |
+| `notch_left_start`, `notch_left_length`, `notch_left_depth` | the same on the left edge |
+| `gauge`, `gauge_start`, `gauge_height`, `gauge_inset` | slanted bar inside the bottom line: on/off, start as % of window width, height and distance from the line in px |
+| `gauge_fill`, `gauge_length`                | stretch the bar until the last slash stops one gap short of the bottom-right cut, or use a fixed length |
+| `gauge_stripes`, `gauge_stripe_width`, `gauge_gap` | the slashes trailing the bar          |
 | `ticks`, `tick_length`, `tick_inset`      | small marks along the frame                 |
 | `tab`, `tab_length`                       | the bar across the top-right cut            |
 | `hatch`, `hatch_count`, `hatch_size`      | diagonal hatch block, bottom-right corner   |
 
 Full detail, including the resize-cost caveat and the plain-border fallback,
 is in `hud-borders/README.md`.
+
+`decoration:rounding` is `0` on purpose: Hyprland rounds window content the
+same amount at every corner, so any rounding would notch the square corners.
+Cuts and notches are covered by `col.mask` instead.
+
+### HUD menu (`cycclon.menu`)
+
+A copy of Omarchy's built-in menu with its own frame and animations. Enabling
+it replaces the built-in menu; disabling or removing it brings the built-in
+one back. It is a snapshot of Omarchy's menu code, so menu features added by
+later Omarchy releases only arrive here when this repo is updated.
+
+- Outline, step and gauge: the properties at the top of
+  `plugins/cycclon.menu/HudFrame.qml` (`chamferTL`…`chamferBL`, `stepStart`,
+  `stepDepth`, `gauge*`). Line thicknesses follow `hud-borders`' settings when
+  it is loaded.
+- Animations: the `powerOn`, `powerOff` and `slideAnim` blocks in
+  `plugins/cycclon.menu/Menu.qml`.
+
+Sub-component edits need `omarchy restart shell` to take effect.
 
 ### CRT overlay (`cycclon.crt`)
 

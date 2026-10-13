@@ -2,29 +2,110 @@
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 namespace {
     constexpr double INV_SQRT2 = 0.70710678118654752;
 
-    // A rectangle whose four corners are cut at independent depths. This is the
-    // whole reason the plugin exists: Hyprland's renderBorder takes one radius
-    // for the entire box, so an asymmetric corner is unreachable from config.
-    void chamferPath(cairo_t* cr, double x, double y, double w, double h, double tl, double tr, double br, double bl) {
-        // Keep opposing cuts from overlapping on small windows.
-        const double maxH = w / 2.0, maxV = h / 2.0;
-        tl = std::clamp(tl, 0.0, std::min(maxH, maxV));
-        tr = std::clamp(tr, 0.0, std::min(maxH, maxV));
-        br = std::clamp(br, 0.0, std::min(maxH, maxV));
-        bl = std::clamp(bl, 0.0, std::min(maxH, maxV));
+    struct SPt {
+        double x, y;
+    };
 
-        cairo_move_to(cr, x + tl, y);
-        cairo_line_to(cr, x + w - tr, y);
-        cairo_line_to(cr, x + w, y + tr);
-        cairo_line_to(cr, x + w, y + h - br);
-        cairo_line_to(cr, x + w - br, y + h);
-        cairo_line_to(cr, x + bl, y + h);
-        cairo_line_to(cr, x, y + h - bl);
-        cairo_line_to(cr, x, y + tl);
+    // The frame outline on the edge of the reserved box, clockwise from the
+    // top-left. Hyprland's renderBorder takes one radius for the entire box, so
+    // independent corner cuts and edge notches are unreachable from config --
+    // that is the whole reason the plugin exists.
+    std::vector<SPt> framePolygon(const SFrameParams& p) {
+        const double W = p.w, H = p.h;
+
+        // Keep opposing cuts from overlapping on small windows.
+        const double lim = std::min(W, H) / 2.0;
+        const double tl  = std::clamp(p.chamTL, 0.0, lim);
+        const double tr  = std::clamp(p.chamTR, 0.0, lim);
+        const double br  = std::clamp(p.chamBR, 0.0, lim);
+        const double bl  = std::clamp(p.chamBL, 0.0, lim);
+
+        std::vector<SPt> pts = {{tl, 0}, {W - tr, 0}, {W, tr}};
+
+        // Clamps a side notch between the corner cuts at either end of its
+        // edge. The slopes need room, so the depth gives way before the run
+        // does. Returns the depth, or 0 when the notch does not fit.
+        auto notchSpan = [&](double start, double length, double depth, double cutTop, double cutBottom, double& y0, double& y1) {
+            if (depth <= 0 || length <= 0)
+                return 0.0;
+            y0             = std::max(H * start, cutTop);
+            y1             = std::min(H * (start + length), H - cutBottom);
+            const double d = std::min({depth, (y1 - y0) / 2.0, W / 4.0});
+            return d >= 1.0 ? d : 0.0;
+        };
+
+        double y0 = 0, y1 = 0;
+
+        // The right edge is walked downward...
+        if (const double d = notchSpan(p.notchRStart, p.notchRLength, p.notchRDepth, tr, br, y0, y1); d > 0)
+            pts.insert(pts.end(), {{W, y0}, {W - d, y0 + d}, {W - d, y1 - d}, {W, y1}});
+
+        pts.insert(pts.end(), {{W, H - br}, {W - br, H}, {bl, H}, {0, H - bl}});
+
+        // ...and the left edge upward.
+        if (const double d = notchSpan(p.notchLStart, p.notchLLength, p.notchLDepth, tl, bl, y0, y1); d > 0)
+            pts.insert(pts.end(), {{0, y1}, {d, y1 - d}, {d, y0 + d}, {0, y0}});
+
+        pts.push_back({0, tl});
+
+        // A zero cut leaves two vertices on the same spot, and a straight run
+        // leaves collinear ones; both would give the offset below a
+        // degenerate edge.
+        std::vector<SPt> out;
+        for (const auto& pt : pts) {
+            if (!out.empty() && std::hypot(pt.x - out.back().x, pt.y - out.back().y) < 1e-6)
+                continue;
+            out.push_back(pt);
+        }
+        while (out.size() > 1 && std::hypot(out.front().x - out.back().x, out.front().y - out.back().y) < 1e-6)
+            out.pop_back();
+
+        std::vector<SPt> clean;
+        for (size_t i = 0; i < out.size(); ++i) {
+            const auto& a = out[(i + out.size() - 1) % out.size()];
+            const auto& b = out[i];
+            const auto& c = out[(i + 1) % out.size()];
+            if (std::abs((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)) > 1e-9)
+                clean.push_back(b);
+        }
+        return clean;
+    }
+
+    // Moves every edge `s` inward and re-joins them at mitred vertices, so the
+    // two rings stay parallel around cuts and notches alike.
+    std::vector<SPt> offsetPolygon(const std::vector<SPt>& pts, double s) {
+        const size_t     n = pts.size();
+        std::vector<SPt> normals(n);
+        for (size_t i = 0; i < n; ++i) {
+            const auto&  a   = pts[i];
+            const auto&  b   = pts[(i + 1) % n];
+            const double len = std::hypot(b.x - a.x, b.y - a.y);
+            // Clockwise in y-down coordinates: the inward normal is (-dy, dx).
+            normals[i] = {-(b.y - a.y) / len, (b.x - a.x) / len};
+        }
+
+        std::vector<SPt> out(n);
+        for (size_t i = 0; i < n; ++i) {
+            const auto&  n1 = normals[(i + n - 1) % n];
+            const auto&  n2 = normals[i];
+            const double k  = s / (1.0 + n1.x * n2.x + n1.y * n2.y);
+            out[i]          = {pts[i].x + (n1.x + n2.x) * k, pts[i].y + (n1.y + n2.y) * k};
+        }
+        return out;
+    }
+
+    void tracePolygon(cairo_t* cr, const std::vector<SPt>& pts) {
+        for (size_t i = 0; i < pts.size(); ++i) {
+            if (i == 0)
+                cairo_move_to(cr, pts[i].x, pts[i].y);
+            else
+                cairo_line_to(cr, pts[i].x, pts[i].y);
+        }
         cairo_close_path(cr);
     }
 
@@ -64,22 +145,29 @@ cairo_surface_t* renderHudFrame(const SFrameParams& p) {
     const double outerInset = p.outer / 2.0;
     const double innerInset = p.outer + p.gap + p.inner / 2.0;
 
-    // Offsetting a chamfered path inward shortens each cut by the offset.
+    // Where the ornaments put the inner line's cuts. The line itself is a true
+    // offset of the outline, drawn below.
     const double shrink = p.outer + p.gap;
     const double iTL = std::max(0.0, p.chamTL - shrink);
     const double iTR = std::max(0.0, p.chamTR - shrink);
     const double iBR = std::max(0.0, p.chamBR - shrink);
     const double iBL = std::max(0.0, p.chamBL - shrink);
 
+    const auto outline = framePolygon(p);
+    if (outline.size() < 3) {
+        cairo_destroy(cr);
+        return surf;
+    }
+
     // ---- corner mask -------------------------------------------------------
     // Everything outside the frame path, filled in one even-odd pass: that is
-    // exactly the four corner cuts.
+    // exactly the corner cuts and the notch.
     if (p.mask && p.ma > 0) {
         cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
         cairo_set_source_rgba(cr, p.mr, p.mg, p.mb, p.ma);
         cairo_new_path(cr);
         cairo_rectangle(cr, 0, 0, W, H);
-        chamferPath(cr, 0, 0, W, H, p.chamTL, p.chamTR, p.chamBR, p.chamBL);
+        tracePolygon(cr, outline);
         cairo_fill(cr);
         cairo_set_fill_rule(cr, CAIRO_FILL_RULE_WINDING);
     }
@@ -89,7 +177,7 @@ cairo_surface_t* renderHudFrame(const SFrameParams& p) {
         cairo_set_source_rgba(cr, p.or_, p.og, p.ob, p.oa);
         cairo_set_line_width(cr, p.outer);
         cairo_new_path(cr);
-        chamferPath(cr, outerInset, outerInset, W - p.outer, H - p.outer, p.chamTL, p.chamTR, p.chamBR, p.chamBL);
+        tracePolygon(cr, offsetPolygon(outline, outerInset));
         cairo_stroke(cr);
     }
 
@@ -102,7 +190,7 @@ cairo_surface_t* renderHudFrame(const SFrameParams& p) {
     cairo_set_source_rgba(cr, p.ir, p.ig, p.ib, p.ia);
     cairo_set_line_width(cr, p.inner);
     cairo_new_path(cr);
-    chamferPath(cr, innerInset, innerInset, W - innerInset * 2, H - innerInset * 2, iTL, iTR, iBR, iBL);
+    tracePolygon(cr, offsetPolygon(outline, innerInset));
     cairo_stroke(cr);
 
     // Ornaments sit this far inside the inner line.
@@ -149,6 +237,44 @@ cairo_surface_t* renderHudFrame(const SFrameParams& p) {
             const double off = p.inner / 2.0 + p.tickInset + i * spacing;
             // Inward normal of the bottom-right cut is (-1,-1)/sqrt(2).
             centredSegment(cr, mx - off * INV_SQRT2, my - off * INV_SQRT2, -INV_SQRT2, INV_SQRT2, p.hatchSize, p.inner);
+        }
+    }
+
+    // ---- bottom gauge: slanted bar plus trailing slashes --------------------
+    if (p.gauge && p.gaugeHeight > 0 && (p.gaugeFill || p.gaugeLength > 0)) {
+        const double h     = p.gaugeHeight;
+        const double base  = H - innerInset - p.inner / 2.0 - p.gaugeInset;
+        const double x0    = W * p.gaugeStart;
+        const int    count = std::max(0, p.gaugeStripes);
+        const double tail  = count * (p.gaugeGap + p.gaugeStripeWidth);
+
+        // Where the bottom-right cut's inside edge crosses the gauge's
+        // baseline. The cut and the slashes are parallel, so a horizontal gap
+        // measured here is the same one the slashes keep between themselves.
+        const double br     = std::clamp(p.chamBR, 0.0, std::min(W, H) / 2.0);
+        const double cutX   = W + H - br - (innerInset + p.inner / 2.0) * std::sqrt(2.0) - base;
+        const double limitX = cutX - p.gaugeGap;
+
+        const double length = p.gaugeFill ? limitX - tail - x0 : p.gaugeLength;
+
+        // Skip on windows too small to hold it clear of the bottom-right cut
+        // and above the top edge.
+        if (length >= h && x0 + length + tail <= limitX + 0.5 && base - h > innerInset) {
+            // Parallelogram leaning like the bottom-right cut: rising h moves
+            // right by h.
+            auto slant = [&](double x, double w) {
+                cairo_new_path(cr);
+                cairo_move_to(cr, x, base);
+                cairo_line_to(cr, x + w, base);
+                cairo_line_to(cr, x + w + h, base - h);
+                cairo_line_to(cr, x + h, base - h);
+                cairo_close_path(cr);
+                cairo_fill(cr);
+            };
+
+            slant(x0, length);
+            for (int i = 0; i < count; ++i)
+                slant(x0 + length + p.gaugeGap + i * (p.gaugeStripeWidth + p.gaugeGap), p.gaugeStripeWidth);
         }
     }
 

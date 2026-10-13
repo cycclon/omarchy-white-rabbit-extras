@@ -38,7 +38,7 @@ repo is the one thing that goes through review.
 
 ## What's especially welcome
 
-- New hidden words/phrases for the digital rain (`theme/` doesn't ship
+- New hidden words/phrases for the digital rain (the theme itself doesn't ship
   these -- see the README's "Adding your own words" section for the
   mechanism, and feel free to suggest additions to the built-in list in
   `plugins/cycclon.rain/RainModel.js`).
