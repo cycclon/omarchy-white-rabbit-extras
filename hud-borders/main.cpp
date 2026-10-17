@@ -56,6 +56,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     reg(hudVars.mask, "plugin:hud-borders:corner_mask", "Paint over window content inside the corner cuts", true);
     reg(hudVars.colMask, "plugin:hud-borders:col.mask", "Colour used to mask the corner cuts", 0xf2020d06);
+    reg(hudVars.fitContent, "plugin:hud-borders:fit_content", "Shrink window content clear of the cuts and notches, leaving them see-through", false);
 
     reg(hudVars.chamferTL, "plugin:hud-borders:chamfer_top_left", "Corner cut depth, top left", 10, SIntValueOptions{.min = 0, .max = 512});
     reg(hudVars.chamferTR, "plugin:hud-borders:chamfer_top_right", "Corner cut depth, top right", 40, SIntValueOptions{.min = 0, .max = 512});

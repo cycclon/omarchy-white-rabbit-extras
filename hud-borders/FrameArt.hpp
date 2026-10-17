@@ -43,6 +43,13 @@ struct SFrameParams {
     // deeper than decoration:rounding. Hyprland rounds content uniformly and a
     // decoration cannot clip it, so the corner is painted over instead.
     bool   mask = true;
+
+    // Fit-content mode: the window content sits this far in from each edge of
+    // the box, clear of every cut and notch. The band between the content and
+    // the outline is filled with the mask colour so the window still reads as
+    // one panel, and the cuts and notches themselves are left empty.
+    bool   fitContent = false;
+    double padL = 0, padT = 0, padR = 0, padB = 0;
     double mr = 0, mg = 0, mb = 0, ma = 0;
 
     // Straight (non-premultiplied) RGBA, 0..1.

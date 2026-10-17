@@ -33,6 +33,41 @@ static double ringThickness() {
         std::max<Config::INTEGER>(0, hudVars.innerThickness->value());
 }
 
+// Space reserved on each edge, in logical px. Normally just the ring. With
+// fit_content, also enough to keep the window content out of every cut and
+// notch, so those show whatever is behind the window.
+static SBoxExtents frameExtents() {
+    const double t = ringThickness();
+    if (!hudVars.fitContent->value())
+        return {{t, t}, {t, t}};
+
+    auto val = [](const SP<Config::Values::CIntValue>& v) { return static_cast<double>(std::max<Config::INTEGER>(0, v->value())); };
+
+    // A notch steps in by its depth, so that edge gives up the same.
+    const double L = val(hudVars.notchLeftLength) > 0 ? val(hudVars.notchLeftDepth) : 0.0;
+    const double R = val(hudVars.notchRightLength) > 0 ? val(hudVars.notchRightDepth) : 0.0;
+
+    // A 45-degree cut of depth c clears the content corner once the insets on
+    // its two edges add up to c, less what the ring already gives: the ring's
+    // inner edge sits t in from both edges, which is (2 - sqrt 2) * t further
+    // along the cut's normal than the cut itself.
+    const double RING = (2.0 - std::sqrt(2.0)) * t;
+    auto         need = [RING](double c) { return std::max(0.0, c - RING); };
+
+    double       top = std::max({0.0, need(val(hudVars.chamferTL)) - L, need(val(hudVars.chamferTR)) - R});
+    double       bot = std::max({0.0, need(val(hudVars.chamferBL)) - L, need(val(hudVars.chamferBR)) - R});
+
+    // The gauge rides the inside of the bottom line; keep it off the content.
+    if (hudVars.gauge->value())
+        bot = std::max(bot, val(hudVars.gaugeHeight) + val(hudVars.gaugeInset));
+
+    return {{t + L, t + std::ceil(top)}, {t + R, t + std::ceil(bot)}};
+}
+
+static bool sameExtents(const SBoxExtents& a, const SBoxExtents& b) {
+    return a.topLeft == b.topLeft && a.bottomRight == b.bottomRight;
+}
+
 SDecorationPositioningInfo CHudFrame::getPositioningInfo() {
     SDecorationPositioningInfo info;
     info.policy   = DECORATION_POSITION_STICKY;
@@ -40,9 +75,11 @@ SDecorationPositioningInfo CHudFrame::getPositioningInfo() {
     info.priority = 9990;
     info.edges    = DECORATION_EDGE_BOTTOM | DECORATION_EDGE_LEFT | DECORATION_EDGE_RIGHT | DECORATION_EDGE_TOP;
 
-    const double size   = m_fLastThickness == 0 ? ringThickness() : m_fLastThickness;
-    info.desiredExtents = {{size, size}, {size, size}};
-    m_fLastThickness    = size;
+    if (!m_hasExtents) {
+        m_lastExtents = frameExtents();
+        m_hasExtents  = true;
+    }
+    info.desiredExtents = m_lastExtents;
 
     return info;
 }
@@ -165,6 +202,13 @@ void CHudFrame::drawPass(PHLMONITOR pMonitor, const float& a) {
     p.gaugeStripeWidth = std::max<Config::INTEGER>(0, hudVars.gaugeStripeWidth->value()) * SCALE;
     p.gaugeGap         = std::max<Config::INTEGER>(0, hudVars.gaugeGap->value()) * SCALE;
     p.mask       = hudVars.mask->value();
+
+    const auto EXTENTS = frameExtents();
+    p.fitContent       = hudVars.fitContent->value();
+    p.padL             = EXTENTS.topLeft.x * SCALE;
+    p.padT             = EXTENTS.topLeft.y * SCALE;
+    p.padR             = EXTENTS.bottomRight.x * SCALE;
+    p.padB             = EXTENTS.bottomRight.y * SCALE;
     p.mr         = MASKCOL.r;
     p.mg         = MASKCOL.g;
     p.mb         = MASKCOL.b;
@@ -190,11 +234,12 @@ void CHudFrame::drawPass(PHLMONITOR pMonitor, const float& a) {
     g_pHyprOpenGL->scissor(nullptr);
     g_pHyprOpenGL->renderTexture(m_tex, fullBox, {.a = a});
 
-    m_seExtents        = {{thickness, thickness}, {thickness, thickness}};
+    m_seExtents        = EXTENTS;
     m_bLastRelativeBox = CBox{0, 0, m_lastWindowSize.x, m_lastWindowSize.y}.addExtents(m_seExtents);
 
-    if (thickness != m_fLastThickness) {
-        m_fLastThickness = thickness;
+    // A config change that moves the insets has to re-lay-out the window.
+    if (!sameExtents(EXTENTS, m_lastExtents)) {
+        m_lastExtents = EXTENTS;
         g_pDecorationPositioner->repositionDeco(this);
     }
 }

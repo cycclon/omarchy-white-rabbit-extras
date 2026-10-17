@@ -22,6 +22,7 @@ struct SHudVars {
     // Corner masking.
     SP<Config::Values::CBoolValue>  mask;
     SP<Config::Values::CColorValue> colMask;
+    SP<Config::Values::CBoolValue>  fitContent;
 
     // Per-corner chamfer depth. This is what Hyprland's own rounding cannot do.
     SP<Config::Values::CIntValue>   chamferTL;

@@ -162,7 +162,16 @@ cairo_surface_t* renderHudFrame(const SFrameParams& p) {
     // ---- corner mask -------------------------------------------------------
     // Everything outside the frame path, filled in one even-odd pass: that is
     // exactly the corner cuts and the notch.
-    if (p.mask && p.ma > 0) {
+    if (p.fitContent && p.ma > 0) {
+        // Inside the outline but outside the content: the panel band.
+        cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
+        cairo_set_source_rgba(cr, p.mr, p.mg, p.mb, p.ma);
+        cairo_new_path(cr);
+        tracePolygon(cr, outline);
+        cairo_rectangle(cr, p.padL, p.padT, W - p.padL - p.padR, H - p.padT - p.padB);
+        cairo_fill(cr);
+        cairo_set_fill_rule(cr, CAIRO_FILL_RULE_WINDING);
+    } else if (p.mask && p.ma > 0) {
         cairo_set_fill_rule(cr, CAIRO_FILL_RULE_EVEN_ODD);
         cairo_set_source_rgba(cr, p.mr, p.mg, p.mb, p.ma);
         cairo_new_path(cr);

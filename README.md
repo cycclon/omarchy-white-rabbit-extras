@@ -37,6 +37,9 @@ screensaver are each a small program.
   "code wall," sized for 2560×1440 and up.
 - **HUD window frames** (`hud-borders`) — the whole frame is drawn in cairo,
   not Hyprland's built-in border, so the outline is not a rounded rectangle.
+  Window content is shrunk to fit inside it, so the cuts and notches are
+  genuinely see-through, and a window alone on a workspace becomes a centred
+  16:9 panel.
   As shipped: 45° cuts top-left and bottom-right, square top-right and
   bottom-left corners, a notch stepped into the right edge and a smaller one
   low on the left, and a slanted gauge with trailing slashes riding the
@@ -302,7 +305,8 @@ Config lives under `plugin.hud_borders` in `hyprland.lua.example` (installed as
 | `outer_thickness` / `inner_thickness` / `gap` | the two-line frame: hairline, dark gap, main line |
 | `col.active` / `col.inactive`             | main line color, focused / unfocused        |
 | `col.outer_active` / `col.outer_inactive` | hairline color                              |
-| `col.mask`                                | painted into corner cuts deeper than `decoration:rounding` — should match your window background, or the cut shows a visible patch |
+| `fit_content`                             | shrink window content clear of every cut and notch, so they show what is behind the window. The insets are worked out from the notch and cut sizes (and the gauge); `col.mask` fills the band between the content and the frame. On in the shipped config |
+| `col.mask`                                | with `fit_content`, the panel band around the content; without it, painted over window content inside the cuts and notches. Should match your window background |
 | `chamfer_top_left/top_right/bottom_right/bottom_left` | corner cut depth, per corner (0 = square) |
 | `notch_right_start`, `notch_right_length`, `notch_right_depth` | notch in the right edge: start and length as % of window height (length includes both slopes), depth in px (0 = off) |
 | `notch_left_start`, `notch_left_length`, `notch_left_depth` | the same on the left edge |
@@ -318,7 +322,13 @@ is in `hud-borders/README.md`.
 
 `decoration:rounding` is `0` on purpose: Hyprland rounds window content the
 same amount at every corner, so any rounding would notch the square corners.
-Cuts and notches are covered by `col.mask` instead.
+Hyprland's own shadow is off too: it follows the window's rectangle, so it
+outlined the cuts and notches instead of the frame.
+
+**A lone window** on a workspace is shown as a centred 16:9 panel with 50px
+above and below (a `w[tv1]` workspace rule plus `single_window_aspect_ratio`),
+so its outline stays visible. Open a second window and the normal tiling and
+gaps return. Both settings are at the end of `hyprland.lua.example`.
 
 ### HUD menu (`cycclon.menu`)
 

@@ -85,6 +85,11 @@ hl.config({
       corner_mask = true,
       -- col.mask above should match the window background.
 
+      -- Reserve extra space on each edge so the window content never enters
+      -- a cut or notch, leaving them see-through. Insets follow from the cut
+      -- and notch sizes; col.mask fills the band around the content.
+      fit_content = false,
+
       ticks       = true, tick_length = 16, tick_inset = 5,
       tab         = true, tab_length  = 34,   -- bar on the top-right cut
       hatch       = true, hatch_count = 3, hatch_size = 18,
@@ -103,7 +108,7 @@ hl.config({
 
 ## Known limitations
 
-- **Chamfers larger than `decoration:rounding` need the corner mask.** The frame
+- **Without `fit_content`, chamfers larger than `decoration:rounding` need the corner mask.** The frame
   is drawn over the window, but the window's own corners are rounded uniformly
   by Hyprland and a decoration cannot clip window content. `corner_mask` (on by
   default) paints `col.mask` into the cut so content does not show through.

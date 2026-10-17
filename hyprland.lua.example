@@ -54,6 +54,12 @@ hl.config({
         mask           = "rgba(020d06f2)",
       },
 
+      -- Shrink window content clear of every cut and notch instead of
+      -- painting over it. The cuts and notches then show whatever is behind
+      -- the window, and col.mask fills the band between the content and the
+      -- frame so each window still reads as one panel.
+      fit_content = true,
+
       chamfer_top_left     = 24,
       chamfer_top_right    = 0,
       chamfer_bottom_right = 36,
@@ -142,11 +148,11 @@ hl.config({
       popups_ignorealpha = 0.2,
     },
 
-    -- Faint, even bloom. Kept low on purpose: a wide glow fills the dark
-    -- spacer between the two border rings and the thin-outer/thick-inner
-    -- pair stops reading as two lines.
+    -- Off: Hyprland's shadow traces the window's rectangle, so it ran
+    -- straight past the notches and cuts and outlined them on the focused
+    -- window. The other values are kept for turning it back on.
     shadow = {
-      enabled = true,
+      enabled = false,
       range = 4,
       render_power = 4,
       color = "rgba(3789991a)",
@@ -196,3 +202,21 @@ hl.layer_rule({ match = { namespace = "^omarchy-bar$" }, blur_popups = true })
 -- The phosphor glow needs no rule at all: it is a screen shader and receives
 -- the finished frame, rain included.
 hl.layer_rule({ match = { namespace = "^(omarchy-rain)$" }, order = -1 })
+
+-- A window alone on a workspace is shown as a centred 16:9 panel with 50px
+-- above and below, rather than filling the screen, so the frame's outline
+-- stays visible. With two or more windows the rule stops matching and the
+-- normal gaps and layout take over again.
+--
+-- w[tv1] matches workspaces with exactly one tiled, visible window. The
+-- aspect ratio only ever applies to a lone window, and the tolerance is
+-- lowered because Hyprland leaves anything within 10% of the target alone:
+-- the 50px gaps already bring a lone window to about 1.94:1, inside that.
+hl.workspace_rule({ workspace = "w[tv1]", gaps_out = { top = 50, right = 10, bottom = 50, left = 10 } })
+
+hl.config({
+  layout = {
+    single_window_aspect_ratio = { 16, 9 },
+    single_window_aspect_ratio_tolerance = 0.01,
+  },
+})

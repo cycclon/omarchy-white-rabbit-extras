@@ -35,7 +35,8 @@ class CHudFrame : public IHyprWindowDecoration {
     Vector2D             m_lastWindowPos;
     Vector2D             m_lastWindowSize;
 
-    double               m_fLastThickness = 0;
+    SBoxExtents          m_lastExtents = {};
+    bool                 m_hasExtents  = false;
 
     // The rendered frame is cached and only redrawn when something it depends
     // on actually changes -- size, focus, or any config value.
