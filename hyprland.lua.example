@@ -29,13 +29,7 @@ hl.config({
     },
   },
 
-  -- borders-plus-plus is kept installed as a fallback but draws nothing while
-  -- hud-borders is loaded. Set add_borders back to 2 to return to it.
   plugin = {
-    borders_plus_plus = {
-      add_borders = 0,
-    },
-
     -- hud-borders: our own plugin. Draws the whole frame in cairo, so corners
     -- can differ from one another and carry ornaments.
     hud_borders = {

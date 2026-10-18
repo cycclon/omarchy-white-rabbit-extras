@@ -109,7 +109,8 @@ this combination has actually been run.
 - **To build `hud-borders`** (optional, see [Limitations](#limitations--drawbacks)):
   a C++23 compiler, `cairo`, `pixman-1`, `libdrm`, `pangocairo`, `libinput`,
   `libudev`, `wayland-server`, `xkbcommon` development headers, and
-  Hyprland's own headers via `hyprpm update`.
+  Hyprland's own headers (`hyprland.pc` — Arch's `hyprland` package ships
+  them; elsewhere, `hyprpm update` if your Hyprland still has it).
 - **`gum`** — used for install-script prompts if present; the script falls
   back to plain `read -p` without it.
 
@@ -134,18 +135,16 @@ the dev machine at 2560×1440 / 60 Hz:
   rebuilt (`hud-borders/rebuild.sh`). The ABI check hashes Hyprland's commit
   *plus the versions of its dependency libraries* (aquamarine, hyprutils,
   …), so a distro upgrade of just one dependency can break the plugin even
-  when the Hyprland version is unchanged — and `hyprpm update` alone doesn't
-  always fix it, because its cached headers can pin stale dependency
-  versions while still reporting "Headers up to date". The rebuild script
-  handles all of this: it builds against the distro's own `hyprland.pc`
-  headers when available (always in lockstep with the running binary) and
-  otherwise checks and repairs the hyprpm cache before building. This is
-  the single most fragile piece of the whole theme.
+  when the Hyprland version is unchanged. The rebuild script handles this:
+  it builds against the distro's own `hyprland.pc` headers (always in
+  lockstep with the running binary), and only on distros that don't ship
+  them falls back to hyprpm's header cache, which it checks and repairs
+  before building. This is the single most fragile piece of the whole theme.
 - **Without `hud-borders` loaded, windows have no visible border at all.**
-  `hyprland.lua.example` sets `border_size = 0` and `add_borders = 0` on the
-  assumption that the native plugin is drawing the frame instead. If you skip
-  building it, or a Hyprland update breaks it and you haven't rebuilt yet,
-  restore a plain border by editing those two values back to `2` in your
+  `hyprland.lua.example` sets `border_size = 0` on the assumption that the
+  native plugin is drawing the frame instead. If you skip building it, or a
+  Hyprland update breaks it and you haven't rebuilt yet, restore a plain
+  border by setting `general.border_size = 2` in your
   installed `~/.config/omarchy/themes/white-rabbit/hyprland.lua` (`install.sh`
   warns you about this every time it can't load the plugin).
 - **Everything here runs unsandboxed.** The Quickshell plugins are
@@ -201,8 +200,8 @@ rather than merging. It:
 2. copies `plugins/cycclon.{crt,glow,rain}/` to
    `~/.config/omarchy/plugins/` and enables each one in the running shell,
    then asks whether to install `cycclon.menu` in place of the built-in menu
-3. asks whether to build and load `hud-borders` (needs `hyprpm update` for
-   current Hyprland headers if you haven't run that before); on success it
+3. asks whether to build and load `hud-borders` (against the Hyprland headers
+   your distro ships; Arch's `hyprland` package includes them); on success it
    adds a load hook to `~/.config/hypr/autostart.lua` (backed up first) — on
    failure or if you decline, it tells you how to restore a plain border
 4. applies the theme (`omarchy theme set white-rabbit`) and restarts the shell
@@ -250,8 +249,7 @@ omarchy plugin enable cycclon.menu
 # 3. hud-borders (optional — skip for a plain border)
 ( cd hud-borders && ./rebuild.sh )
 # The script finds headers itself: the distro's hyprland.pc if the package
-# ships one, else hyprpm's cache (which it checks and repairs if stale).
-# Only run 'hyprpm update' if the script tells you to.
+# ships one (Arch does), else hyprpm's cache (which it checks and repairs).
 # then add to ~/.config/hypr/autostart.lua:
 #   hl.on("hyprland.start", function()
 #     hl.exec_cmd("hyprctl plugin load " .. os.getenv("HOME") .. "/.local/src/omarchy-white-rabbit-theme/hud-borders/hud-borders.so")

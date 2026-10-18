@@ -73,6 +73,6 @@ fi
 
 command -v omarchy >/dev/null 2>&1 && { omarchy restart shell >/dev/null 2>&1 || true; }
 
-echo "Done. general.border_size / plugin.borders_plus_plus.add_borders belonged to"
+echo "Done. general.border_size belonged to"
 echo "White Rabbit's own hyprland.lua, so nothing to restore there -- your next"
 echo "theme's own settings apply as soon as you switch to it."

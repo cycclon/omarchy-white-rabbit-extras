@@ -8,8 +8,8 @@ bottom-right corner.
 ## Why it exists
 
 Hyprland's border renderer takes a single rounding radius for the whole window
-(`decoration:rounding` + `decoration:rounding_power`), and `borders-plus-plus`
-inherits that limit -- it calls `renderBorder()` once per ring with one radius.
+(`decoration:rounding` + `decoration:rounding_power`), and the `borders-plus-plus`
+plugin inherits that limit -- it calls `renderBorder()` once per ring with one radius.
 So an asymmetric corner, or any ornament, is unreachable from configuration.
 
 This plugin draws the frame with **cairo** into an ARGB surface and uploads it
@@ -29,7 +29,8 @@ The script locates Hyprland headers itself, in this order:
    Arch package ships one). These are built from the same commit with the
    same dependency versions as the running binary, so they always match.
 2. **hyprpm's cache** (`/var/cache/hyprpm/$USER/headersRoot`) — used only
-   when the distro ships no headers (e.g. NixOS). The plugin ABI hash
+   when the distro ships no headers and still provides `hyprpm` (Arch's
+   `hyprland` package no longer does since 0.56.2-4). The plugin ABI hash
    embeds Hyprland's commit hash *plus* the version strings of aquamarine,
    hyprutils, hyprgraphics, hyprcursor and hyprlang; hyprpm's cached
    headers carry the versions pinned in Hyprland's source, which can fall
@@ -41,7 +42,7 @@ The script locates Hyprland headers itself, in this order:
 It also checks the plugin's load result afterwards and reports the remedy
 instead of leaving you with a silent "reloaded" and an unloaded plugin.
 
-Requires cairo and a C++23 compiler. (Only `hyprpm update` when told.)
+Requires cairo and a C++23 compiler.
 
 ## Install / load
 
@@ -123,20 +124,18 @@ hl.config({
   ABI hash includes the versions of aquamarine/hyprutils/hyprgraphics/
   hyprcursor/hyprlang, so any of them moving can stop the plugin from
   loading even when Hyprland itself is unchanged. Run `./rebuild.sh` after
-  every update that touches any of those packages; it repairs a stale
-  hyprpm header cache itself.
+  every update that touches any of those packages.
 
 ## Fallback
 
-`borders-plus-plus` is still installed and enabled; the Matrix theme sets its
-`add_borders = 0` so it draws nothing. The theme also sets
-`general.border_size = 0`, since this plugin draws the thick inner line itself
-and Hyprland's own border would otherwise trace a uniformly-chamfered path
-across the asymmetric corners.
-
-If this plugin ever fails to load, restore both in the theme:
+The theme sets `general.border_size = 0`, since this plugin draws the thick
+inner line itself and Hyprland's own border would otherwise trace a
+uniformly-chamfered path across the asymmetric corners. If the plugin isn't
+loaded, get Hyprland's plain border back in the theme:
 
 ```lua
 general = { border_size = 2 },
-plugin  = { borders_plus_plus = { add_borders = 2 } },
 ```
+
+(Earlier versions kept `borders-plus-plus` as a fallback via `hyprpm`; Arch's
+Hyprland package no longer ships `hyprpm`, so that fallback is gone.)

@@ -142,13 +142,16 @@ HUD_BUILT=0
 if (( SKIP_HUD_BORDERS )); then
   note "Skipping hud-borders (--no-hud-borders)"
 elif confirm "Build and load hud-borders, the HUD window-frame plugin? (needs a C++23 toolchain, cairo, and Hyprland's headers; without it every window has no border)"; then
-  HEADERS="/var/cache/hyprpm/$USER/headersRoot/share/pkgconfig"
-  if [[ ! -d $HEADERS ]]; then
+  # Arch's hyprland package ships its headers (hyprland.pc); hyprpm's cache is
+  # only a fallback for distros that don't, and newer packages drop hyprpm.
+  HYPRPM_PC="/var/cache/hyprpm/$USER/headersRoot/share/pkgconfig"
+  have_headers() { pkg-config --exists hyprland 2>/dev/null || [[ -d $HYPRPM_PC ]]; }
+  if ! have_headers && command -v hyprpm >/dev/null 2>&1; then
     if confirm "Hyprland headers not found -- run 'hyprpm update' now? (downloads and builds against your exact Hyprland version)"; then
       hyprpm update
     fi
   fi
-  if [[ -d $HEADERS ]]; then
+  if have_headers; then
     note "Building hud-borders"
     if ( cd "$ROOT/hud-borders" && ./rebuild.sh ); then
       HUD_BUILT=1
@@ -159,8 +162,8 @@ elif confirm "Build and load hud-borders, the HUD window-frame plugin? (needs a 
       warn "stable ABI, so a point release can require changes -- check the repo issues."
     fi
   else
-    warn "Hyprland headers still missing; skipping the build. Run 'hyprpm update' and"
-    warn "then 'hud-borders/rebuild.sh' yourself later."
+    warn "Hyprland headers not found; skipping the build. Install your distro's"
+    warn "Hyprland development headers (hyprland.pc), then run 'hud-borders/rebuild.sh'."
   fi
 else
   note "Skipping hud-borders"
@@ -189,12 +192,11 @@ EOF
   fi
   hyprctl plugin load "$ROOT/hud-borders/hud-borders.so" >/dev/null 2>&1 || true
 else
-  warn "hud-borders is not loaded. hyprland.lua sets border_size = 0 and"
-  warn "add_borders = 0 because it expects hud-borders to draw the frame instead --"
-  warn "without it every window will have NO visible border at all. Either re-run"
-  warn "this installer, run hud-borders/rebuild.sh by hand later, or open"
-  warn "$THEME_DST/hyprland.lua and set general.border_size = 2 and"
-  warn "plugin.borders_plus_plus.add_borders = 2 to fall back to plain borders."
+  warn "hud-borders is not loaded. hyprland.lua sets border_size = 0 because it"
+  warn "expects hud-borders to draw the frame instead -- without it every window"
+  warn "will have NO visible border at all. Either re-run this installer, run"
+  warn "hud-borders/rebuild.sh by hand later, or open $THEME_DST/hyprland.lua"
+  warn "and set general.border_size = 2 to fall back to Hyprland's plain border."
 fi
 
 # --- 4. apply ----------------------------------------------------------------

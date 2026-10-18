@@ -81,7 +81,7 @@ if env -u PKG_CONFIG_PATH pkg-config --exists hyprland; then
     unset PKG_CONFIG_PATH
     note "headers: distro hyprland.pc ($(pkg-config --modversion hyprland))"
 else
-    [[ -d $CACHE_PC ]] || fail "no hyprland.pc on the default pkg-config path and no hyprpm cache -- run: hyprpm update"
+    [[ -d $CACHE_PC ]] || fail "no hyprland.pc on the default pkg-config path and no hyprpm cache -- install your distro's Hyprland headers (or run 'hyprpm update' if your Hyprland still ships hyprpm)"
     export PKG_CONFIG_PATH="$CACHE_PC"
     note "headers: hyprpm cache (no distro hyprland.pc found)"
     check_stale_cache
