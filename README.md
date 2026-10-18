@@ -16,7 +16,7 @@ Six pieces working together under one Hyprland session:
 a theme, four Quickshell plugins and a native Hyprland plugin.
 
 - an Omarchy **theme** (the files at the repo root) — palette, terminal, GTK,
-  and shell-chrome colors, three background images, and the Hyprland config
+  and shell-chrome colors, four background images, and the Hyprland config
   that ties the rest together (`hyprland.lua.example`)
 - four **Quickshell plugins** (`plugins/cycclon.*`) that run inside your
   existing `omarchy-shell` process: the CRT overlay, the phosphor glow, the
@@ -33,8 +33,9 @@ screensaver are each a small program.
 - **Palette & terminal** — dimmed phosphor green on near-black, a desaturated
   cyan accent, tuned foot/GTK styling, and a lock/bar/menu/launcher/notification
   chrome that all read from the same `colors.toml`.
-- **Three background images** — two digital-rain renders and a dense
-  "code wall," sized for 2560×1440 and up.
+- **Four background images** — two digital-rain renders, a dense
+  "code wall," and the Arch Linux logo formed out of the rain, sized for
+  2560×1440 and up.
 - **HUD window frames** (`hud-borders`) — the whole frame is drawn in cairo,
   not Hyprland's built-in border, so the outline is not a rounded rectangle.
   Window content is shrunk to fit inside it, so the cuts and notches are
