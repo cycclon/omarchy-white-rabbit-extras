@@ -23,6 +23,7 @@ a theme, four Quickshell plugins and a native Hyprland plugin.
   digital-rain screensaver, and a restyled Omarchy menu
 - one **native Hyprland plugin** (`hud-borders/`), compiled C++, that draws
   the window frame
+- a **mouse cursor set** (`cursors/`) in the same cyan HUD line-art
 
 None of it is theme-engine configuration you could get from `colors.toml`
 alone — the window frame, the CRT tube, the phosphor bloom, and the
@@ -50,6 +51,11 @@ screensaver are each a small program.
   frame language but its own shape: the right edge steps inward partway down
   and stays in, with a small gauge top-left. It powers on with a CRT flicker,
   collapses to a bright line when closed, and slides between submenus.
+- **HUD cursors** (`cursors/`) — hollow cyan line-art pointers with a soft
+  glow: a triangular arrow, an angular pointing hand, a capped text beam, a
+  four-way move cross with arcs, a red "forbidden" ring, and the full set of
+  resize, zoom, help, copy and animated busy cursors. The pointer is drawn
+  in software so the glow and scanlines reach it too.
 - **CRT tube overlay** (`cycclon.crt`) — a fullscreen shader adding
   scanlines, corner vignette, and a faint black-level haze over everything,
   screensaver included.
@@ -204,11 +210,14 @@ rather than merging. It:
    your distro ships; Arch's `hyprland` package includes them); on success it
    adds a load hook to `~/.config/hypr/autostart.lua` (backed up first) — on
    failure or if you decline, it tells you how to restore a plain border
-4. applies the theme (`omarchy theme set white-rabbit`) and restarts the shell
+4. asks whether to install the cursors to `~/.local/share/icons/WhiteRabbit`
+   (and points GTK's `cursor-theme` setting at them)
+5. applies the theme (`omarchy theme set white-rabbit`) and restarts the shell
 
 Flags: `--yes` skips every prompt, `--no-hud-borders` skips the native
 plugin entirely (plain Hyprland border rendering — see Limitations),
-`--no-menu` keeps Omarchy's built-in menu.
+`--no-menu` keeps Omarchy's built-in menu, `--no-cursors` keeps your
+current mouse cursors.
 
 > **`omarchy theme install` gives you the colors only.** It works on this
 > repo, and you get the palette, GTK and shell colors, and the backgrounds,
@@ -255,9 +264,15 @@ omarchy plugin enable cycclon.menu
 #     hl.exec_cmd("hyprctl plugin load " .. os.getenv("HOME") .. "/.local/src/omarchy-white-rabbit-theme/hud-borders/hud-borders.so")
 #   end)
 
-# 4. apply
+# 4. cursors (optional)
+mkdir -p ~/.local/share/icons
+cp -a cursors/WhiteRabbit ~/.local/share/icons/WhiteRabbit
+gsettings set org.gnome.desktop.interface cursor-theme WhiteRabbit
+
+# 5. apply
 omarchy theme set white-rabbit
 omarchy restart shell
+hyprctl setcursor WhiteRabbit 24
 ```
 
 ### Uninstall
@@ -268,7 +283,7 @@ omarchy theme set <some-other-theme>   # can't remove the active theme
 ./uninstall.sh
 ```
 
-Removes the theme, the plugins (restoring the built-in menu), and the `hud-borders` autostart hook.
+Removes the theme, the plugins (restoring the built-in menu), the cursors, and the `hud-borders` autostart hook.
 Doesn't delete this checkout — remove the directory yourself once you're done.
 
 ## Configuration
@@ -293,6 +308,26 @@ independently:
 
 Edit any of these under the installed theme directory and re-run
 `omarchy theme set white-rabbit` to apply.
+
+### Cursors (`cursors/`)
+
+![cursors](cursors/preview.png)
+
+`cursors/WhiteRabbit/` is a ready-built XCursor theme (sizes 24–96, with
+animated busy cursors); anything it doesn't define falls back to Adwaita.
+The theme's `hyprland.lua` selects it with `XCURSOR_THEME` and sets
+`cursor.no_hardware_cursors = 1`, which renders the pointer in software so
+the phosphor glow and scanlines apply to it. That can add a hair of pointer
+latency; set it back to `2` if you notice it. Apps that were already open
+pick the new cursors up the next time they start.
+
+The cursors are drawn as SVG by `cursors/gen.py` — edit the shapes or the
+`CYAN` / `RED` colors there and rebuild with (needs Python with `numpy` and
+`pillow`, plus ImageMagick):
+
+```sh
+cd cursors && python3 gen.py WhiteRabbit/cursors
+```
 
 ### HUD window frame (`hud-borders`)
 

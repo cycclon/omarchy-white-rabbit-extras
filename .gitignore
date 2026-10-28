@@ -5,3 +5,5 @@ hud-borders/*.o
 # Editor/OS cruft
 .DS_Store
 *.swp
+cursors/tmp/
+cursors/sheet.png

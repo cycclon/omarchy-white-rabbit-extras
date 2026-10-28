@@ -214,3 +214,16 @@ hl.config({
     single_window_aspect_ratio_tolerance = 0.01,
   },
 })
+
+-- Cursors. XCURSOR_THEME picks the White Rabbit pointer set that install.sh
+-- copies to ~/.local/share/icons/WhiteRabbit (without it installed, apps fall
+-- back to your usual cursor). no_hardware_cursors draws the pointer in
+-- software so it passes through the glow screen shader like everything
+-- else, instead of floating on a hardware plane above it; set it back to 2
+-- if the pointer ever feels laggy.
+hl.env("XCURSOR_THEME", "WhiteRabbit")
+hl.config({
+  cursor = {
+    no_hardware_cursors = 1,
+  },
+})

@@ -10,7 +10,9 @@
 #      Omarchy's built-in menu, is asked about separately
 #   3. optionally builds hud-borders/ (a native Hyprland plugin) and wires it
 #      into ~/.config/hypr/autostart.lua
-#   4. applies the theme and restarts the shell
+#   4. optionally installs the White Rabbit cursors to
+#      ~/.local/share/icons/WhiteRabbit
+#   5. applies the theme and restarts the shell
 #
 # Safe to re-run: every step overwrites its own previous copy rather than
 # merging, so running this again after `git pull` is how you update.
@@ -31,17 +33,22 @@ AUTOSTART="$HOME/.config/hypr/autostart.lua"
 ASSUME_YES=0
 SKIP_HUD_BORDERS=0
 SKIP_MENU=0
+SKIP_CURSORS=0
+CURSOR_THEME="WhiteRabbit"
+CURSOR_DST="$HOME/.local/share/icons/$CURSOR_THEME"
 
 for arg in "$@"; do
   case "$arg" in
     --yes|-y) ASSUME_YES=1 ;;
     --no-hud-borders) SKIP_HUD_BORDERS=1 ;;
     --no-menu) SKIP_MENU=1 ;;
+    --no-cursors) SKIP_CURSORS=1 ;;
     --help|-h)
-      echo "Usage: ./install.sh [--yes] [--no-hud-borders] [--no-menu]"
+      echo "Usage: ./install.sh [--yes] [--no-hud-borders] [--no-menu] [--no-cursors]"
       echo "  --yes              don't prompt for confirmation"
       echo "  --no-hud-borders   skip the native window-frame plugin entirely"
       echo "  --no-menu          keep Omarchy's built-in menu"
+      echo "  --no-cursors       keep your current mouse cursors"
       exit 0
       ;;
     *) echo "Unknown option: $arg" >&2; exit 1 ;;
@@ -199,12 +206,35 @@ else
   warn "and set general.border_size = 2 to fall back to Hyprland's plain border."
 fi
 
-# --- 4. apply ----------------------------------------------------------------
+# --- 4. cursors (optional) ---------------------------------------------------
+
+# A plain XCursor theme, prebuilt from cursors/gen.py. hyprland.lua selects it
+# with XCURSOR_THEME; GTK apps read the gsettings key instead.
+CURSORS_INSTALLED=0
+if (( SKIP_CURSORS )); then
+  note "Skipping cursors (--no-cursors)"
+elif confirm "Install the White Rabbit mouse cursors? (cyan line-art pointer, hand, text beam and the rest)"; then
+  note "Installing cursors to $CURSOR_DST"
+  rm -rf "$CURSOR_DST"
+  mkdir -p "$(dirname "$CURSOR_DST")"
+  cp -a "$ROOT/cursors/$CURSOR_THEME" "$CURSOR_DST"
+  if command -v gsettings >/dev/null 2>&1; then
+    gsettings set org.gnome.desktop.interface cursor-theme "$CURSOR_THEME" || true
+  fi
+  CURSORS_INSTALLED=1
+else
+  note "Skipping cursors"
+fi
+
+# --- 5. apply ----------------------------------------------------------------
 
 note "Applying the theme"
 omarchy theme set "$THEME_NAME"
 omarchy restart shell >/dev/null 2>&1 || true
 hyprctl reload >/dev/null 2>&1 || true
+if (( CURSORS_INSTALLED )); then
+  hyprctl setcursor "$CURSOR_THEME" "${XCURSOR_SIZE:-24}" >/dev/null 2>&1 || true
+fi
 
 cat <<EOF
 

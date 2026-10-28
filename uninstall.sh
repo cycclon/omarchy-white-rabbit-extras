@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Remove everything install.sh added: the theme, the Quickshell plugins
-# (disabling the menu one brings Omarchy's built-in menu back), and the
-# hud-borders autostart hook. Does not touch hud-borders.so
+# (disabling the menu one brings Omarchy's built-in menu back), the cursors,
+# and the hud-borders autostart hook. Does not touch hud-borders.so
 # itself or this checkout -- delete the cloned repo yourself if you're done
 # with it.
 set -euo pipefail
@@ -12,6 +12,8 @@ THEME_DST="$HOME/.config/omarchy/themes/$THEME_NAME"
 PLUGINS_DST="$HOME/.config/omarchy/plugins"
 PLUGIN_IDS=(cycclon.crt cycclon.glow cycclon.rain cycclon.menu)
 AUTOSTART="$HOME/.config/hypr/autostart.lua"
+CURSOR_THEME="WhiteRabbit"
+CURSOR_DST="$HOME/.local/share/icons/$CURSOR_THEME"
 ASSUME_YES=0
 
 for arg in "$@"; do
@@ -42,7 +44,7 @@ if [[ $current_theme == "$THEME_NAME" ]]; then
   exit 1
 fi
 
-confirm "Remove the White Rabbit theme, its plugins, and the hud-borders autostart hook?" || exit 1
+confirm "Remove the White Rabbit theme, its plugins, its cursors, and the hud-borders autostart hook?" || exit 1
 
 note "Removing plugins"
 for id in "${PLUGIN_IDS[@]}"; do
@@ -55,6 +57,16 @@ command -v omarchy-shell >/dev/null 2>&1 && omarchy-shell shell rescanPlugins >/
 
 note "Removing theme directory"
 rm -rf "$THEME_DST"
+
+if [[ -d $CURSOR_DST ]]; then
+  note "Removing cursors"
+  rm -rf "$CURSOR_DST"
+  if command -v gsettings >/dev/null 2>&1 &&
+     [[ $(gsettings get org.gnome.desktop.interface cursor-theme 2>/dev/null) == "'$CURSOR_THEME'" ]]; then
+    gsettings reset org.gnome.desktop.interface cursor-theme || true
+  fi
+  hyprctl setcursor Adwaita "${XCURSOR_SIZE:-24}" >/dev/null 2>&1 || true
+fi
 
 if [[ -f $AUTOSTART ]] && grep -qF "hud-borders.so" "$AUTOSTART"; then
   note "Removing the hud-borders hook from $AUTOSTART"
