@@ -1,23 +1,28 @@
-# White Rabbit
+# White Rabbit extras
 
-A green-phosphor [Omarchy](https://omarchy.org/) theme built around a digital-rain
-screensaver, a CRT tube overlay, a phosphor bloom shader, and asymmetric
-cyan HUD window frames — Kid's Story terminal, not a movie poster.
+Everything that *runs* for the [White Rabbit](https://github.com/cycclon/omarchy-white-rabbit-theme) [Omarchy](https://omarchy.org/)
+theme: a digital-rain screensaver, a CRT tube overlay, a phosphor bloom
+shader, asymmetric cyan HUD window frames, a restyled menu and HUD cursors —
+Kid's Story terminal, not a movie poster.
 
-![preview](preview.png)
+The theme itself — palette, backgrounds, GTK and shell colors — lives in
+[omarchy-white-rabbit-theme](https://github.com/cycclon/omarchy-white-rabbit-theme) and installs on its own with
+`omarchy theme install`. This repository adds the rest, and its
+`install.sh` sets up both.
+
+![preview](https://raw.githubusercontent.com/cycclon/omarchy-white-rabbit-theme/master/preview.png)
 
 | The HUD menu | The digital-rain screensaver |
 |---|---|
-| ![menu](preview-menu.png) | ![screensaver](preview-rain.png) |
+| ![menu](https://raw.githubusercontent.com/cycclon/omarchy-white-rabbit-theme/master/preview-menu.png) | ![screensaver](https://raw.githubusercontent.com/cycclon/omarchy-white-rabbit-theme/master/preview-rain.png) |
 
 ## What this is
 
-Six pieces working together under one Hyprland session:
-a theme, four Quickshell plugins and a native Hyprland plugin.
+The pieces, working together under one Hyprland session:
 
-- an Omarchy **theme** (the files at the repo root) — palette, terminal, GTK,
-  and shell-chrome colors, four background images, and the Hyprland config
-  that ties the rest together (`hyprland.lua.example`)
+- the **theme** ([its own repository](https://github.com/cycclon/omarchy-white-rabbit-theme)) — palette, terminal, GTK, and
+  shell-chrome colors, four background images, and the Hyprland config that
+  ties the rest together (`hyprland.lua.example`); `install.sh` fetches it
 - four **Quickshell plugins** (`plugins/cycclon.*`) that run inside your
   existing `omarchy-shell` process: the CRT overlay, the phosphor glow, the
   digital-rain screensaver, and a restyled Omarchy menu
@@ -27,16 +32,14 @@ a theme, four Quickshell plugins and a native Hyprland plugin.
 
 None of it is theme-engine configuration you could get from `colors.toml`
 alone — the window frame, the CRT tube, the phosphor bloom, and the
-screensaver are each a small program.
+screensaver are each a small program, which is why they live apart from the
+theme.
 
 ## Features
 
-- **Palette & terminal** — dimmed phosphor green on near-black, a desaturated
-  cyan accent, tuned foot/GTK styling, and a lock/bar/menu/launcher/notification
-  chrome that all read from the same `colors.toml`.
-- **Four background images** — two digital-rain renders, a dense
-  "code wall," and the Arch Linux logo formed out of the rain, sized for
-  2560×1440 and up.
+- **The theme** ([separate repo](https://github.com/cycclon/omarchy-white-rabbit-theme)) — dimmed phosphor green on
+  near-black with a desaturated cyan accent, tuned foot/GTK styling, shell
+  chrome from the same `colors.toml`, and four digital-rain backgrounds.
 - **HUD window frames** (`hud-borders`) — the whole frame is drawn in cairo,
   not Hyprland's built-in border, so the outline is not a rounded rectangle.
   Window content is shrunk to fit inside it, so the cuts and notches are
@@ -92,7 +95,7 @@ The rain is a `Top`-layer surface, not `Overlay`, specifically so the CRT
 overlay keeps compositing over it — an `Overlay`-layer screensaver would sit
 *above* the CRT tube instead of inside it. The phosphor glow needs no layer
 rule at all: `decoration:screen_shader` runs on the fully composited frame,
-rain included. See `hyprland.lua.example` for the full comment trail; the sign
+rain included. See `hyprland.lua.example` in the [theme repo](https://github.com/cycclon/omarchy-white-rabbit-theme) for the full comment trail; the sign
 of Hyprland's `layer_rule order` (lower draws nearer the top) was arrived at
 by measurement, not documentation.
 
@@ -183,16 +186,16 @@ the dev machine at 2560×1440 / 60 Hz:
 ## Install
 
 ```sh
-git clone https://github.com/cycclon/omarchy-white-rabbit-theme ~/.local/src/omarchy-white-rabbit-theme
-cd ~/.local/src/omarchy-white-rabbit-theme
+git clone https://github.com/cycclon/omarchy-white-rabbit-extras ~/.local/src/omarchy-white-rabbit-extras
+cd ~/.local/src/omarchy-white-rabbit-extras
 ./install.sh
 ```
 
-Keep the clone where it lands (`~/.local/src/` is where `hud-borders` already
-expects to live for `rebuild.sh` to find it again). Updating is:
+Keep the clone where it lands (`hud-borders` is loaded from it at every
+login, and `rebuild.sh` lives there). Updating is:
 
 ```sh
-cd ~/.local/src/omarchy-white-rabbit-theme
+cd ~/.local/src/omarchy-white-rabbit-extras
 git pull
 ./install.sh
 ```
@@ -200,9 +203,11 @@ git pull
 `install.sh` is safe to re-run — every step replaces its own previous copy
 rather than merging. It:
 
-1. copies the theme files at the repo root to
-   `~/.config/omarchy/themes/white-rabbit/`, installing `hyprland.lua.example`
-   and `foot.ini.example` as `hyprland.lua` and `foot.ini`
+1. fetches the [theme](https://github.com/cycclon/omarchy-white-rabbit-theme) (a shallow `git clone` into a temporary
+   directory, or the checkout you pass with `--theme-src DIR`) and copies it
+   to `~/.config/omarchy/themes/white-rabbit/`, installing
+   `hyprland.lua.example` and `foot.ini.example` as `hyprland.lua` and
+   `foot.ini`
 2. copies `plugins/cycclon.{crt,glow,rain}/` to
    `~/.config/omarchy/plugins/` and enables each one in the running shell,
    then asks whether to install `cycclon.menu` in place of the built-in menu
@@ -217,30 +222,31 @@ rather than merging. It:
 Flags: `--yes` skips every prompt, `--no-hud-borders` skips the native
 plugin entirely (plain Hyprland border rendering — see Limitations),
 `--no-menu` keeps Omarchy's built-in menu, `--no-cursors` keeps your
-current mouse cursors.
+current mouse cursors, `--theme-src DIR` uses a local theme checkout
+instead of fetching one.
 
-> **`omarchy theme install` gives you the colors only.** It works on this
-> repo, and you get the palette, GTK and shell colors, and the backgrounds,
-> with Omarchy's standard window borders. Omarchy deliberately drops
-> `hyprland.lua` and any terminal config from a git-cloned theme as a safety
-> measure, so the repo ships those as `hyprland.lua.example` and
-> `foot.ini.example`, and that route installs neither them nor the plugins.
-> The window frame, layer rules, blur tuning, screensaver, CRT overlay and
-> glow all need `install.sh`, which stages those files itself and explains
-> what it's doing as it goes. Run it from a clone outside
-> `~/.config/omarchy/themes/`.
+> **Already installed the theme with `omarchy theme install`?** That gives you
+> the palette, GTK and shell colors, and the backgrounds, with Omarchy's
+> standard window borders: Omarchy deliberately drops `hyprland.lua` and any
+> terminal config from a git-cloned theme. Running `install.sh` here replaces
+> that clone with a plain copy that includes them, which the window frame,
+> layer rules, blur tuning, screensaver, CRT overlay and glow all need.
 
 ### Doing it by hand
 
 If you'd rather review each step yourself instead of running the script:
 
 ```sh
-# 1. theme
+# 1. theme (from a clone of the theme repo, not a copy under ~/.config/omarchy/themes)
+git clone https://github.com/cycclon/omarchy-white-rabbit-theme ~/.local/src/omarchy-white-rabbit-theme
 mkdir -p ~/.config/omarchy/themes/white-rabbit
-cp -r backgrounds colors.toml gtk.css gtk4.css icons.theme preview.png shell.*.toml \
-  ~/.config/omarchy/themes/white-rabbit/
-cp hyprland.lua.example ~/.config/omarchy/themes/white-rabbit/hyprland.lua
-cp foot.ini.example     ~/.config/omarchy/themes/white-rabbit/foot.ini
+( cd ~/.local/src/omarchy-white-rabbit-theme &&
+  cp -r backgrounds colors.toml gtk.css gtk4.css icons.theme preview.png shell.*.toml \
+    ~/.config/omarchy/themes/white-rabbit/ &&
+  cp hyprland.lua.example ~/.config/omarchy/themes/white-rabbit/hyprland.lua &&
+  cp foot.ini.example     ~/.config/omarchy/themes/white-rabbit/foot.ini )
+
+# steps 2-4 run from this checkout
 
 # 2. plugins
 cp -r plugins/cycclon.crt  ~/.config/omarchy/plugins/cycclon.crt
@@ -261,7 +267,7 @@ omarchy plugin enable cycclon.menu
 # ships one (Arch does), else hyprpm's cache (which it checks and repairs).
 # then add to ~/.config/hypr/autostart.lua:
 #   hl.on("hyprland.start", function()
-#     hl.exec_cmd("hyprctl plugin load " .. os.getenv("HOME") .. "/.local/src/omarchy-white-rabbit-theme/hud-borders/hud-borders.so")
+#     hl.exec_cmd("hyprctl plugin load " .. os.getenv("HOME") .. "/.local/src/omarchy-white-rabbit-extras/hud-borders/hud-borders.so")
 #   end)
 
 # 4. cursors (optional)
@@ -278,7 +284,7 @@ hyprctl setcursor WhiteRabbit 24
 ### Uninstall
 
 ```sh
-cd ~/.local/src/omarchy-white-rabbit-theme
+cd ~/.local/src/omarchy-white-rabbit-extras
 omarchy theme set <some-other-theme>   # can't remove the active theme
 ./uninstall.sh
 ```
@@ -290,23 +296,9 @@ Doesn't delete this checkout — remove the directory yourself once you're done.
 
 ### Theme colors & shell chrome
 
-`~/.config/omarchy/themes/white-rabbit/colors.toml` is a standard Omarchy
-palette file — the usual `foreground` / `background` / `accent` / ANSI
-16-color keys. Each shell surface has its own override file read
-independently:
-
-| File                        | Surface                                |
-|------------------------------|-----------------------------------------|
-| `shell.bar.toml`             | top bar                                 |
-| `shell.menu.toml`             | Omarchy menu (Super key)                |
-| `shell.launcher.toml`         | app launcher                            |
-| `shell.lock.toml`             | lock screen                             |
-| `shell.notifications.toml`    | notification cards                      |
-| `shell.popups.toml`           | generic popups                          |
-| `shell.tooltip.toml`          | tooltips                                |
-| `shell.controls.toml`         | hover/focus/selected states on controls |
-
-Edit any of these under the installed theme directory and re-run
+The palette and per-surface shell colors are plain theme files, documented in
+the [theme repo's README](https://github.com/cycclon/omarchy-white-rabbit-theme#configuration). Edit them under
+`~/.config/omarchy/themes/white-rabbit/` and re-run
 `omarchy theme set white-rabbit` to apply.
 
 ### Cursors (`cursors/`)
@@ -331,7 +323,7 @@ cd cursors && python3 gen.py WhiteRabbit/cursors
 
 ### HUD window frame (`hud-borders`)
 
-Config lives under `plugin.hud_borders` in `hyprland.lua.example` (installed as
+Config lives under `plugin.hud_borders` in the theme's `hyprland.lua.example` (installed as
 `~/.config/omarchy/themes/white-rabbit/hyprland.lua`):
 
 | Key                                    | Meaning                                   |

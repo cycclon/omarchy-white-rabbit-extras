@@ -54,9 +54,10 @@ repo is the one thing that goes through review.
 - Changes that drop the theme-name gate or make a plugin activate outside
   the White Rabbit theme by default -- that's the one design constraint
   this repo has.
-- Anything that reintroduces `omarchy theme install`/raw `git clone`
-  compatibility for the theme directory. See the README's "Install"
-  section for why the theme is deliberately *not* installed that way.
+- Code in the theme repository. The theme
+  ([omarchy-white-rabbit-theme](https://github.com/cycclon/omarchy-white-rabbit-theme))
+  holds only theme files so it can be listed in Omarchy's gallery; anything
+  that runs belongs here.
 
 ## Reporting bugs without opening a PR
 
