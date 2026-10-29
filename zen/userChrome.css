@@ -1,0 +1,60 @@
+/* White Rabbit: context and dropdown menus in the HUD frame language.
+ *
+ * The frame is one 64x64 SVG cut into nine pieces (22px corners, stretched
+ * edges and centre) and laid out as background layers: 45-degree cuts
+ * top-left and bottom-right, a square top-right corner, a small step low on
+ * the left, and a thick accent along the top-left cut -- the shapes
+ * hud-borders draws on windows. Colors come from the matrix theme: cyan
+ * #45abbf frame, green #29cc52 text, near-black #020d06 fill.
+ *
+ * The fill is 75% opaque so the menu reads as glass: Hyprland blurs what
+ * shows through (decoration:blur:popups in the theme's hyprland.lua).
+ *
+ * Everything goes through the --panel-* variables: Firefox's popup styles
+ * read them inside the popup's shadow tree, where ::part() rules from this
+ * file do not reach.
+ */
+
+menupopup {
+  --panel-background-color:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") left top / 22px 22px no-repeat,
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='42 0 22 22' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") right top / 22px 22px no-repeat,
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 42 22 22' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") left bottom / 22px 22px no-repeat,
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='42 42 22 22' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") right bottom / 22px 22px no-repeat,
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='22 0 20 22' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") left 22px top / calc(100% - 44px) 22px no-repeat,
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='22 42 20 22' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") left 22px bottom / calc(100% - 44px) 22px no-repeat,
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 22 22 20' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") left top 22px / 22px calc(100% - 44px) no-repeat,
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='42 22 22 20' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") right top 22px / 22px calc(100% - 44px) no-repeat,
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='22 22 20 20' preserveAspectRatio='none'><path d='M14.75,0.75 H63.25 V49.25 L49.25,63.25 H3.75 V52 L0.75,49 V14.75 Z' fill='%23020d06' fill-opacity='0.75' stroke='%2345abbf' stroke-width='1.5'/><path d='M3.5,13 L13,3.5' stroke='%2345abbf' stroke-width='2.6'/></svg>") left 22px top 22px / calc(100% - 44px) calc(100% - 44px) no-repeat !important;
+  --panel-border-color: transparent !important;
+  --panel-border-radius: 0px !important;
+  --panel-box-shadow: none !important;
+  --panel-padding: 8px 8px 10px 6px !important;
+  --panel-text-color: #29cc52 !important;
+  --panel-separator-color: rgba(69, 171, 191, 0.35) !important;
+  --panel-icon-fill: #29cc52 !important;
+  --menuitem-icon-fill: #29cc52 !important;
+  --menuitem-border-radius: 0px !important;
+  --text-color-disabled: #187533 !important;
+}
+
+menupopup :is(menu, menuitem) {
+  color: #29cc52 !important;
+}
+
+menupopup :is(menu, menuitem)[disabled] {
+  color: #187533 !important;
+}
+
+menupopup :is(menu, menuitem)[_moz-menuactive]:not([disabled]) {
+  color: #a0ccad !important;
+  background-color: rgba(41, 204, 82, 0.14) !important;
+}
+
+menupopup :is(menu, menuitem)[_moz-menuactive][disabled] {
+  background-color: transparent !important;
+}
+
+menupopup menuseparator::before {
+  border-color: rgba(69, 171, 191, 0.35) !important;
+}

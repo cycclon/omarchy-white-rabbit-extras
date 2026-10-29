@@ -59,6 +59,10 @@ theme.
   four-way move cross with arcs, a red "forbidden" ring, and the full set of
   resize, zoom, help, copy and animated busy cursors. The pointer is drawn
   in software so the glow and scanlines reach it too.
+- **HUD context menus for Zen** (`zen/userChrome.css`) — Zen's right-click
+  and dropdown menus in the window frame's shape, with green items and a 75%
+  fill that Hyprland frosts. The theme's `gtk4.css` does the same for GTK 4
+  apps.
 - **CRT tube overlay** (`cycclon.crt`) — a fullscreen shader adding
   scanlines, corner vignette, and a faint black-level haze over everything,
   screensaver included.
@@ -319,6 +323,25 @@ The cursors are drawn as SVG by `cursors/gen.py` — edit the shapes or the
 
 ```sh
 cd cursors && python3 gen.py WhiteRabbit/cursors
+```
+
+### Zen context menus (`zen/userChrome.css`)
+
+Not run by the installer: copy it into your Zen profile by hand.
+
+1. Open `about:support` in Zen and find **Profile Directory**.
+2. Copy `zen/userChrome.css` to `chrome/userChrome.css` in that directory.
+   If a `userChrome.css` is already there, append this file to it instead.
+3. In `about:config`, set
+   `toolkit.legacyUserProfileCustomizations.stylesheets` to `true`.
+4. Restart Zen.
+
+The fill is 75% opaque, and Hyprland frosts what shows through it through
+`decoration:blur:popups`. A `no_blur` window rule on the browser also turns
+off the blur behind its menus, so limit such a rule to fullscreen:
+
+```lua
+o.window({ class = "zen", fullscreen = true }, { no_blur = true })
 ```
 
 ### HUD window frame (`hud-borders`)
