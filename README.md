@@ -54,7 +54,7 @@ theme.
   frame language but its own shape: the right edge steps inward partway down
   and stays in, with a small gauge top-left. It powers on with a CRT flicker,
   collapses to a bright line when closed, and slides between submenus.
-- **HUD cursors** (`cursors/`) — hollow cyan line-art pointers with a soft
+- **HUD cursors** (`cursors/`) — cyan line-art pointers, filled near-black so they read on light pages, with a soft
   glow: a triangular arrow, an angular pointing hand, a capped text beam, a
   four-way move cross with arcs, a red "forbidden" ring, and the full set of
   resize, zoom, help, copy and animated busy cursors. The pointer is drawn
