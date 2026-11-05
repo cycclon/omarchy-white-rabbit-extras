@@ -2,15 +2,15 @@
 # Install the White Rabbit theme plus its extras into a running Omarchy session.
 #
 # The theme itself (palette, backgrounds, GTK/shell colors and the reference
-# hyprland.lua/foot.ini) lives in its own repository,
+# foot.ini) lives in its own repository,
 # github.com/cycclon/omarchy-white-rabbit-theme; this one holds everything
-# that runs. The installer fetches the theme with a shallow git clone unless
+# that runs, the theme's hyprland.lua included (hypr/hyprland.lua). The installer fetches the theme with a shallow git clone unless
 # you point --theme-src at a checkout you already have.
 #
 # What this does, in order:
 #   1. copies the theme files -> ~/.config/omarchy/themes/white-rabbit/
-#      (hyprland.lua.example and foot.ini.example are installed as the real
-#      hyprland.lua and foot.ini)
+#      (foot.ini.example is installed as the real foot.ini) and adds
+#      hypr/hyprland.lua from this repo
 #   2. copies plugins/cycclon.* -> ~/.config/omarchy/plugins/cycclon.*/
 #      and enables them in the running shell; cycclon.menu, which replaces
 #      Omarchy's built-in menu, is asked about separately
@@ -98,9 +98,9 @@ White Rabbit installs three unsandboxed Quickshell plugins (they run as plain
 QML inside your existing omarchy-shell process, with the same access as the
 rest of your desktop), optionally a fourth that replaces Omarchy's menu, and,
 optionally, a native Hyprland plugin built from C++
-source and loaded with `hyprctl plugin load`. Review plugins/ and
-hud-borders/ here, and hyprland.lua.example in the theme repo, before
-continuing if you have not already.
+source and loaded with `hyprctl plugin load`. Review plugins/,
+hud-borders/ and hypr/hyprland.lua here before continuing if you have not
+already.
 EOF
 confirm "Continue?" || exit 1
 
@@ -108,9 +108,9 @@ confirm "Continue?" || exit 1
 
 # `omarchy theme install` stages only the palette and backgrounds: Omarchy
 # drops hyprland.lua and terminal configs from a git-cloned theme, which is
-# why the theme repo carries them as *.example. This installer copies them in
-# under their real names, into a directory with no .git, so they take effect.
-THEME_FILES=(backgrounds colors.toml gtk.css gtk4.css icons.theme preview.png shell.*.toml)
+# why the theme repo carries foot.ini as foot.ini.example and hyprland.lua
+# lives here. This installer copies both in under their real names, into a
+# directory with no .git, so they take effect.
 
 if [[ -z $THEME_SRC ]]; then
   FETCH_DIR="$(mktemp -d)"
@@ -119,7 +119,7 @@ if [[ -z $THEME_SRC ]]; then
   git clone --quiet --depth 1 "$THEME_REPO" "$FETCH_DIR/theme" || fail "could not clone $THEME_REPO"
   THEME_SRC="$FETCH_DIR/theme"
 fi
-[[ -f $THEME_SRC/colors.toml && -f $THEME_SRC/hyprland.lua.example ]] \
+[[ -f $THEME_SRC/colors.toml && -f $THEME_SRC/foot.ini.example ]] \
   || fail "$THEME_SRC does not look like a checkout of omarchy-white-rabbit-theme"
 if [[ $THEME_SRC -ef $THEME_DST ]]; then
   fail "--theme-src IS $THEME_DST, which this installer replaces. Clone the theme somewhere else, or drop --theme-src to fetch it."
@@ -134,8 +134,11 @@ if [[ -d $THEME_DST/.git ]]; then
 fi
 rm -rf "$THEME_DST"
 mkdir -p "$THEME_DST"
-( cd "$THEME_SRC" && cp -r "${THEME_FILES[@]}" "$THEME_DST"/ )
-cp "$THEME_SRC/hyprland.lua.example" "$THEME_DST/hyprland.lua"
+# The glob has to expand inside the theme checkout, not wherever this script
+# was started from.
+( cd "$THEME_SRC" &&
+  cp -r backgrounds colors.toml gtk.css gtk4.css icons.theme preview.png shell.*.toml "$THEME_DST"/ )
+cp "$ROOT/hypr/hyprland.lua" "$THEME_DST/hyprland.lua"
 cp "$THEME_SRC/foot.ini.example" "$THEME_DST/foot.ini"
 
 # --- 2. quickshell plugins ---------------------------------------------------

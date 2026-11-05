@@ -21,8 +21,9 @@ The theme itself — palette, backgrounds, GTK and shell colors — lives in
 The pieces, working together under one Hyprland session:
 
 - the **theme** ([its own repository](https://github.com/cycclon/omarchy-white-rabbit-theme)) — palette, terminal, GTK, and
-  shell-chrome colors, four background images, and the Hyprland config that
-  ties the rest together (`hyprland.lua.example`); `install.sh` fetches it
+  shell-chrome colors and four background images; `install.sh` fetches it
+- the theme's **Hyprland config** (`hypr/hyprland.lua`), which ties the rest
+  together; it lives here because the theme repo carries no code
 - four **Quickshell plugins** (`plugins/cycclon.*`) that run inside your
   existing `omarchy-shell` process: the CRT overlay, the phosphor glow, the
   digital-rain screensaver, and a restyled Omarchy menu
@@ -99,7 +100,7 @@ The rain is a `Top`-layer surface, not `Overlay`, specifically so the CRT
 overlay keeps compositing over it — an `Overlay`-layer screensaver would sit
 *above* the CRT tube instead of inside it. The phosphor glow needs no layer
 rule at all: `decoration:screen_shader` runs on the fully composited frame,
-rain included. See `hyprland.lua.example` in the [theme repo](https://github.com/cycclon/omarchy-white-rabbit-theme) for the full comment trail; the sign
+rain included. See `hypr/hyprland.lua` for the full comment trail; the sign
 of Hyprland's `layer_rule order` (lower draws nearer the top) was arrived at
 by measurement, not documentation.
 
@@ -154,7 +155,7 @@ the dev machine at 2560×1440 / 60 Hz:
   them falls back to hyprpm's header cache, which it checks and repairs
   before building. This is the single most fragile piece of the whole theme.
 - **Without `hud-borders` loaded, windows have no visible border at all.**
-  `hyprland.lua.example` sets `border_size = 0` on the assumption that the
+  `hypr/hyprland.lua` sets `border_size = 0` on the assumption that the
   native plugin is drawing the frame instead. If you skip building it, or a
   Hyprland update breaks it and you haven't rebuilt yet, restore a plain
   border by setting `general.border_size = 2` in your
@@ -210,8 +211,8 @@ rather than merging. It:
 1. fetches the [theme](https://github.com/cycclon/omarchy-white-rabbit-theme) (a shallow `git clone` into a temporary
    directory, or the checkout you pass with `--theme-src DIR`) and copies it
    to `~/.config/omarchy/themes/white-rabbit/`, installing
-   `hyprland.lua.example` and `foot.ini.example` as `hyprland.lua` and
-   `foot.ini`
+   `foot.ini.example` as `foot.ini`, then adds `hypr/hyprland.lua` from
+   this repo
 2. copies `plugins/cycclon.{crt,glow,rain}/` to
    `~/.config/omarchy/plugins/` and enables each one in the running shell,
    then asks whether to install `cycclon.menu` in place of the built-in menu
@@ -247,10 +248,12 @@ mkdir -p ~/.config/omarchy/themes/white-rabbit
 ( cd ~/.local/src/omarchy-white-rabbit-theme &&
   cp -r backgrounds colors.toml gtk.css gtk4.css icons.theme preview.png shell.*.toml \
     ~/.config/omarchy/themes/white-rabbit/ &&
-  cp hyprland.lua.example ~/.config/omarchy/themes/white-rabbit/hyprland.lua &&
-  cp foot.ini.example     ~/.config/omarchy/themes/white-rabbit/foot.ini )
+  cp foot.ini.example ~/.config/omarchy/themes/white-rabbit/foot.ini )
 
-# steps 2-4 run from this checkout
+# the rest runs from this checkout
+
+# Hyprland config
+cp hypr/hyprland.lua ~/.config/omarchy/themes/white-rabbit/hyprland.lua
 
 # 2. plugins
 cp -r plugins/cycclon.crt  ~/.config/omarchy/plugins/cycclon.crt
@@ -346,7 +349,7 @@ o.window({ class = "zen", fullscreen = true }, { no_blur = true })
 
 ### HUD window frame (`hud-borders`)
 
-Config lives under `plugin.hud_borders` in the theme's `hyprland.lua.example` (installed as
+Config lives under `plugin.hud_borders` in `hypr/hyprland.lua` (installed as
 `~/.config/omarchy/themes/white-rabbit/hyprland.lua`):
 
 | Key                                    | Meaning                                   |
@@ -377,7 +380,7 @@ outlined the cuts and notches instead of the frame.
 **A lone window** on a workspace is shown as a centred 16:9 panel with 50px
 above and below (a `w[tv1]` workspace rule plus `single_window_aspect_ratio`),
 so its outline stays visible. Open a second window and the normal tiling and
-gaps return. Both settings are at the end of `hyprland.lua.example`.
+gaps return. Both settings are at the end of `hypr/hyprland.lua`.
 
 ### HUD menu (`cycclon.menu`)
 
